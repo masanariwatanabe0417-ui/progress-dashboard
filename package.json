@@ -12,7 +12,7 @@
     "screenshot": "node scripts/take-screenshot.js",
     "post-slack": "node scripts/post-to-slack.js",
     "post-slack:dry-run": "DRY_RUN=1 node scripts/post-to-slack.js",
-    "run-all": "npm run fetch-data && npm run calculate-health && npm run ai-suggestions && npm run generate-dashboard && npm run deploy && npm run screenshot && npm run post-slack"
+    "run-all": "npm run fetch-data && npm run calculate-health && npm run ai-suggestions && npm run generate-dashboard && npm run screenshot && npm run post-slack"
   },
   "keywords": [
     "dashboard",
