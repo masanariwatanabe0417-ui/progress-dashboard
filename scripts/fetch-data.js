@@ -251,12 +251,13 @@ async function fetchLinearData() {
     console.log(`✅ 合計 ${allIssues.length}件の親イシューを取得しました`);
 
     // Filter issues by magazine status label group
+    const statusLabelValues = Object.values(STATUS_LABELS);
     const magazines = allIssues.filter(issue => {
       let hasStatusLabel = false;
       let hasStockStatus = false;
 
       for (const label of issue.labels.nodes) {
-        if (label.parent && label.parent.name === LABEL_GROUPS.parentStatus) {
+        if (statusLabelValues.includes(label.name)) {
           hasStatusLabel = true;
           if (label.name === STATUS_LABELS.stock) {
             hasStockStatus = true;
@@ -286,9 +287,9 @@ async function fetchLinearData() {
 
     // Transform data structure
     const transformedMagazines = magazines.map(issue => {
-      // Extract magazine status label (from the label group)
+      // Extract magazine status label (by direct name match)
       const statusLabel = issue.labels.nodes.find(label =>
-        label.parent && label.parent.name === LABEL_GROUPS.parentStatus
+        statusLabelValues.includes(label.name)
       );
 
       return {

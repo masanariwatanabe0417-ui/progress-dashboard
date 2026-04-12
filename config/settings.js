@@ -4,13 +4,13 @@ export const LINEAR_API_URL = 'https://api.linear.app/graphql';
 export const LINEAR_TEAM_KEY = process.env.MAGAZINE_LINEAR_TEAM_KEY || 'YOUR_TEAM';
 
 export const LABEL_GROUPS = {
-  parentStatus: 'マガジン作成ステータス（イシュー）',
+  parentStatus: '企画案ストック',
   // Linear 上のラベル名が「スタータス」表記のため、そのまま記載
   subIssueStatus: 'マガジン作成スタータス詳細（サブイシュー）',
 };
 
 export const STATUS_LABELS = {
-  stock: '1.企画案ストック',
+  stock: '企画案ストック',
   composition: '2.構成作成中',
   manuscript: '3.原稿執筆中',
   video: '4.動画編集中',
