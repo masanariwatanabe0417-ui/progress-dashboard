@@ -1,0 +1,63 @@
+{
+  "WFWorkflowMinimumClientVersion": 900,
+  "WFWorkflowName": "位置情報サービス切替",
+  "WFWorkflowIcon": {
+    "WFWorkflowIconStartColor": 946986751,
+    "WFWorkflowIconGlyphNumber": 59606
+  },
+  "WFWorkflowActions": [
+    {
+      "WFWorkflowActionIdentifier": "is.workflow.actions.location",
+      "WFWorkflowActionParameters": {
+        "WFGetLocationActionMode": "Current Location",
+        "WFOutput": "Current Location"
+      }
+    },
+    {
+      "WFWorkflowActionIdentifier": "is.workflow.actions.conditional",
+      "WFWorkflowActionParameters": {
+        "WFControlFlowMode": 0,
+        "WFCondition": 100,
+        "GroupingIdentifier": "location-check"
+      }
+    },
+    {
+      "WFWorkflowActionIdentifier": "is.workflow.actions.showresult",
+      "WFWorkflowActionParameters": {
+        "Text": "✅ 位置情報サービスは現在 ON です\n\n設定アプリで OFF にできます。"
+      }
+    },
+    {
+      "WFWorkflowActionIdentifier": "is.workflow.actions.openurl",
+      "WFWorkflowActionParameters": {
+        "WFURL": "App-Prefs:root=Privacy&path=LOCATION"
+      }
+    },
+    {
+      "WFWorkflowActionIdentifier": "is.workflow.actions.conditional",
+      "WFWorkflowActionParameters": {
+        "WFControlFlowMode": 1,
+        "GroupingIdentifier": "location-check"
+      }
+    },
+    {
+      "WFWorkflowActionIdentifier": "is.workflow.actions.showresult",
+      "WFWorkflowActionParameters": {
+        "Text": "❌ 位置情報サービスは現在 OFF（または未許可）です\n\n設定アプリで ON にできます。"
+      }
+    },
+    {
+      "WFWorkflowActionIdentifier": "is.workflow.actions.openurl",
+      "WFWorkflowActionParameters": {
+        "WFURL": "App-Prefs:root=Privacy&path=LOCATION"
+      }
+    },
+    {
+      "WFWorkflowActionIdentifier": "is.workflow.actions.conditional",
+      "WFWorkflowActionParameters": {
+        "WFControlFlowMode": 2,
+        "GroupingIdentifier": "location-check"
+      }
+    }
+  ]
+}

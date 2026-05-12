@@ -1,0 +1,16 @@
+{
+  "WFWorkflowMinimumClientVersion": 900,
+  "WFWorkflowName": "位置情報設定を開く",
+  "WFWorkflowIcon": {
+    "WFWorkflowIconStartColor": 946986751,
+    "WFWorkflowIconGlyphNumber": 59606
+  },
+  "WFWorkflowActions": [
+    {
+      "WFWorkflowActionIdentifier": "is.workflow.actions.openurl",
+      "WFWorkflowActionParameters": {
+        "WFURL": "App-Prefs:root=Privacy&path=LOCATION"
+      }
+    }
+  ]
+}
