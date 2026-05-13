@@ -1,767 +1,1276 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>政務活動費審査支援ツール | 横須賀市議会</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; }
-    body {
-      font-family: 'Meiryo UI', 'Meiryo', 'Yu Gothic UI', 'Yu Gothic', sans-serif;
-      background: #eef1f5;
-      color: #2c3e50;
-      margin: 0;
-      font-size: 14px;
-      line-height: 1.5;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>政務活動費 審査システム | 横須賀市議会</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Meiryo UI','Meiryo','Yu Gothic UI','Yu Gothic',sans-serif;background:#eef1f5;color:#2c3e50;font-size:14px;line-height:1.5}
 
-    /* ── Header ── */
-    .app-header {
-      background: linear-gradient(135deg, #1a3a5c 0%, #2d5f8a 100%);
-      color: white;
-      box-shadow: 0 2px 8px rgba(0,0,0,.25);
-    }
-    .header-inner {
-      max-width: 1600px;
-      margin: 0 auto;
-      padding: 14px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .header-title  { font-size: 19px; font-weight: 700; }
-    .header-sub    { font-size: 12px; opacity: .72; margin-top: 2px; }
-    .header-badge  { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3);
-                     padding: 3px 12px; border-radius: 20px; font-size: 12px; }
+/* ── Header / Nav ── */
+.app-header{background:linear-gradient(135deg,#1a3a5c,#2d5f8a);color:white;box-shadow:0 2px 8px rgba(0,0,0,.25);position:sticky;top:0;z-index:100}
+.header-row{max-width:1600px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;justify-content:space-between}
+.header-title{font-size:17px;font-weight:700}
+.header-sub{font-size:11px;opacity:.7;margin-top:1px}
+.nav-tabs{display:flex;gap:3px}
+.nav-tab{padding:7px 16px;border:none;background:rgba(255,255,255,.12);color:white;border-radius:6px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;transition:all .2s;white-space:nowrap}
+.nav-tab:hover{background:rgba(255,255,255,.22)}
+.nav-tab.active{background:white;color:#1a3a5c}
+.nav-tab .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:middle}
+.dot-ok{background:#22c55e}.dot-warn{background:#f59e0b}.dot-err{background:#ef4444}.dot-gray{background:#6b7280}
 
-    /* ── Container ── */
-    .wrap { max-width: 1600px; margin: 0 auto; padding: 20px 24px; }
+/* ── Layout ── */
+.wrap{max-width:1600px;margin:0 auto;padding:18px 20px}
+.tab-panel{display:none}.tab-panel.active{display:block}
 
-    /* ── Upload ── */
-    .upload-section { background: white; border-radius: 12px; padding: 40px; text-align: center;
-                      box-shadow: 0 2px 8px rgba(0,0,0,.08); margin-bottom: 20px; }
-    .drop-zone { border: 2px dashed #bdd0e8; border-radius: 10px; padding: 48px 40px;
-                 cursor: pointer; transition: all .2s; }
-    .drop-zone:hover, .drop-zone.over { border-color: #2d5f8a; background: #f0f7ff; }
-    .drop-icon { font-size: 52px; margin-bottom: 14px; }
-    .drop-text { font-size: 16px; color: #555; }
-    .drop-text strong { color: #2d5f8a; }
-    .drop-hint { font-size: 12px; color: #aaa; margin-top: 8px; }
-    #fileInput { display: none; }
+/* ── Cards / Sections ── */
+.card{background:white;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.08);padding:18px 20px;margin-bottom:16px}
+.section-title{font-size:15px;font-weight:700;color:#1a3a5c;margin-bottom:12px;display:flex;align-items:center;gap:8px}
 
-    /* ── Info bar ── */
-    .info-bar { background: white; border-radius: 10px; padding: 12px 18px;
-                box-shadow: 0 2px 8px rgba(0,0,0,.08); margin-bottom: 16px;
-                display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
-    .info-left { display: flex; align-items: center; gap: 10px; font-size: 13px; }
-    .info-icon { font-size: 22px; }
+/* ── Buttons ── */
+.btn{padding:6px 14px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:all .2s;display:inline-flex;align-items:center;gap:5px}
+.btn-primary{background:#2d5f8a;color:white}.btn-primary:hover{background:#1a3a5c}
+.btn-success{background:#16a34a;color:white}.btn-success:hover{background:#15803d}
+.btn-warning{background:#d97706;color:white}.btn-warning:hover{background:#b45309}
+.btn-danger{background:#dc2626;color:white}.btn-danger:hover{background:#b91c1c}
+.btn-secondary{background:#6b7280;color:white}.btn-secondary:hover{background:#4b5563}
+.btn-light{background:#f3f4f6;color:#374151;border:1px solid #e5e7eb}.btn-light:hover{background:#e5e7eb}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-ai{background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white}.btn-ai:hover{opacity:.9}
+.btn:disabled{opacity:.45;cursor:not-allowed}
 
-    /* ── Summary cards ── */
-    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-                    gap: 14px; margin-bottom: 18px; }
-    .scard { background: white; border-radius: 10px; padding: 14px 18px;
-             box-shadow: 0 2px 8px rgba(0,0,0,.08); border-left: 4px solid transparent; }
-    .scard.c-blue   { border-left-color: #2d5f8a; }
-    .scard.c-red    { border-left-color: #dc3545; }
-    .scard.c-yellow { border-left-color: #e6a100; }
-    .scard.c-green  { border-left-color: #28a745; }
-    .scard.c-gray   { border-left-color: #6c757d; }
-    .scard-label { font-size: 11px; color: #888; margin-bottom: 5px; }
-    .scard-value { font-size: 26px; font-weight: 700; }
-    .scard-value.c-blue   { color: #2d5f8a; }
-    .scard-value.c-red    { color: #dc3545; }
-    .scard-value.c-yellow { color: #c58800; }
-    .scard-value.c-green  { color: #28a745; }
-    .scard-value.c-gray   { color: #6c757d; }
-    .scard-sub { font-size: 11px; color: #bbb; margin-top: 3px; }
+/* ── Badges / Chips ── */
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;margin:1px 2px;white-space:nowrap}
+.badge-err{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
+.badge-warn{background:#fef3c7;color:#92400e;border:1px solid #fcd34d}
+.badge-ok{background:#dcfce7;color:#166534;border:1px solid #86efac}
+.badge-gray{background:#f3f4f6;color:#374151;border:1px solid #d1d5db}
+.chip{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}
+.chip-done{background:#dcfce7;color:#166534}.chip-undone{background:#fef3c7;color:#92400e}
+.chip-y{background:#dcfce7;color:#166534}.chip-n{background:#fee2e2;color:#991b1b}
 
-    /* ── Filter bar ── */
-    .filter-bar { background: white; border-radius: 10px; padding: 10px 16px;
-                  box-shadow: 0 2px 8px rgba(0,0,0,.08); margin-bottom: 12px;
-                  display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-    .fg { display: flex; align-items: center; gap: 7px; }
-    .fl { font-size: 12px; color: #666; white-space: nowrap; }
-    select.fs, input.fi {
-      border: 1px solid #ddd; border-radius: 6px; padding: 5px 9px;
-      font-size: 13px; outline: none; font-family: inherit;
-      transition: border-color .2s;
-    }
-    select.fs:focus, input.fi:focus { border-color: #2d5f8a; }
-    input.fi { min-width: 190px; }
+/* ── Upload zone ── */
+.drop-zone{border:2px dashed #bcd0e8;border-radius:10px;padding:44px 36px;text-align:center;cursor:pointer;transition:all .2s}
+.drop-zone:hover,.drop-zone.over{border-color:#2d5f8a;background:#f0f7ff}
+.drop-icon{font-size:48px;margin-bottom:12px}
+.drop-text{font-size:15px;color:#555}.drop-text strong{color:#2d5f8a}
+.drop-hint{font-size:12px;color:#aaa;margin-top:8px}
+input[type=file]{display:none}
 
-    /* ── Buttons ── */
-    .btn { padding: 6px 15px; border-radius: 6px; border: none; cursor: pointer;
-           font-size: 13px; font-weight: 600; font-family: inherit; transition: all .2s; }
-    .btn-secondary { background: #6c757d; color: white; }
-    .btn-secondary:hover { background: #545b62; }
-    .btn-print { background: #28a745; color: white; }
-    .btn-print:hover { background: #1e7e34; }
-    .btn-help { background: #e8f0fb; color: #2d5f8a; border: 1px solid #c5d8f0; }
-    .btn-help:hover { background: #d0e4f7; }
-    .ml-auto { margin-left: auto; }
+/* ── Summary cards ── */
+.sum-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+.scard{background:white;border-radius:10px;padding:13px 16px;box-shadow:0 2px 8px rgba(0,0,0,.08);border-left:4px solid transparent}
+.scard.blue{border-left-color:#2d5f8a}.scard.red{border-left-color:#ef4444}
+.scard.yellow{border-left-color:#f59e0b}.scard.green{border-left-color:#22c55e}.scard.gray{border-left-color:#6b7280}
+.scard-label{font-size:11px;color:#888;margin-bottom:4px}
+.scard-val{font-size:24px;font-weight:700}
+.scard-val.blue{color:#2d5f8a}.scard-val.red{color:#dc2626}.scard-val.yellow{color:#d97706}.scard-val.green{color:#16a34a}.scard-val.gray{color:#6b7280}
+.scard-sub{font-size:11px;color:#bbb;margin-top:2px}
 
-    /* ── Tabs ── */
-    .tabs { display: flex; gap: 4px; margin-bottom: 0; }
-    .tab { padding: 7px 16px; border-radius: 8px 8px 0 0; cursor: pointer;
-           font-size: 13px; font-weight: 600; border: 1px solid #ddd; border-bottom: none;
-           background: #e4e8ed; color: #666; transition: all .2s; user-select: none; }
-    .tab.active { background: white; color: #1a3a5c; }
-    .tbadge { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 11px; margin-left: 5px; }
-    .tbadge.r { background: #dc3545; color: white; }
-    .tbadge.y { background: #e6a100; color: white; }
-    .tbadge.g { background: #6c757d; color: white; }
+/* ── Filter bar ── */
+.filter-bar{background:white;border-radius:10px;padding:10px 14px;box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:10px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.fg{display:flex;align-items:center;gap:6px}
+.fl{font-size:12px;color:#666;white-space:nowrap}
+select.fs,input.fi{border:1px solid #ddd;border-radius:6px;padding:5px 9px;font-size:13px;outline:none;font-family:inherit;transition:border-color .2s}
+select.fs:focus,input.fi:focus{border-color:#2d5f8a}
+input.fi{min-width:180px}
 
-    /* ── Table container ── */
-    .table-wrap { background: white; border-radius: 0 10px 10px 10px;
-                  box-shadow: 0 2px 8px rgba(0,0,0,.08); overflow: hidden; }
-    .table-scroll { overflow-x: auto; }
+/* ── Tabs (sub) ── */
+.sub-tabs{display:flex;gap:3px;margin-bottom:0}
+.sub-tab{padding:6px 14px;border-radius:8px 8px 0 0;cursor:pointer;font-size:13px;font-weight:600;border:1px solid #ddd;border-bottom:none;background:#e4e8ed;color:#666;transition:all .2s;user-select:none}
+.sub-tab.active{background:white;color:#1a3a5c}
+.tbadge{display:inline-block;padding:1px 7px;border-radius:10px;font-size:11px;margin-left:4px}
+.tbadge-r{background:#ef4444;color:white}.tbadge-y{background:#f59e0b;color:white}.tbadge-g{background:#6b7280;color:white}
 
-    /* ── Data table ── */
-    .dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .dtable th {
-      background: #1a3a5c; color: white; padding: 9px 11px;
-      text-align: left; font-weight: 600; white-space: nowrap;
-      position: sticky; top: 0; z-index: 10;
-    }
-    .dtable td { padding: 8px 11px; border-bottom: 1px solid #eee; vertical-align: middle; }
-    .dtable tr.row-error   td { background: #fff4f4; }
-    .dtable tr.row-warning td { background: #fffbee; }
-    .dtable tr.clickable { cursor: pointer; }
-    .dtable tr.clickable:hover td { filter: brightness(0.96); }
+/* ── Table ── */
+.table-wrap{background:white;border-radius:0 10px 10px 10px;box-shadow:0 2px 8px rgba(0,0,0,.08);overflow:hidden}
+.table-scroll{overflow-x:auto}
+.dtable{width:100%;border-collapse:collapse;font-size:13px}
+.dtable th{background:#1a3a5c;color:white;padding:8px 10px;text-align:left;font-weight:600;white-space:nowrap;position:sticky;top:0;z-index:10}
+.dtable td{padding:7px 10px;border-bottom:1px solid #eee;vertical-align:middle}
+.dtable tr.r-err td{background:#fff4f4}.dtable tr.r-warn td{background:#fffbee}
+.dtable tr.r-reviewed td{opacity:.7}
+.dtable tr.clickable{cursor:pointer}.dtable tr.clickable:hover td{filter:brightness(.96)}
+td.amt{text-align:right;font-variant-numeric:tabular-nums}
+td.amt-bold{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;color:#1a3a5c}
 
-    /* ── Badges ── */
-    .badge { display: inline-block; padding: 2px 8px; border-radius: 12px;
-             font-size: 11px; font-weight: 600; margin: 1px 2px; white-space: nowrap; }
-    .badge.err  { background: #fde8e8; color: #b91c1c; border: 1px solid #fca5a5; }
-    .badge.warn { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
-    .badge.ok   { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+/* ── Pagination ── */
+.pager{display:flex;justify-content:flex-end;align-items:center;padding:10px 14px;gap:5px;border-top:1px solid #eee;flex-wrap:wrap}
+.pgbtn{padding:4px 9px;border:1px solid #ddd;border-radius:4px;cursor:pointer;background:white;font-size:13px;font-family:inherit}
+.pgbtn:hover{background:#f0f2f5}.pgbtn.active{background:#2d5f8a;color:white;border-color:#2d5f8a}
+.pgbtn:disabled{opacity:.45;cursor:not-allowed}
+.pg-info{font-size:12px;color:#888;margin-right:auto}
 
-    /* ── Chips ── */
-    .chip { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-    .chip.done   { background: #d1fae5; color: #065f46; }
-    .chip.undone { background: #fef3c7; color: #92400e; }
-    .chip.rcpt-y { background: #d1fae5; color: #065f46; }
-    .chip.rcpt-n { background: #fee2e2; color: #991b1b; }
+/* ── Phase 3: Split layout ── */
+.review-layout{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+@media(max-width:1100px){.review-layout{grid-template-columns:1fr}}
+.review-list-panel{background:white;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.08);overflow:hidden}
+.review-list-header{background:#1a3a5c;color:white;padding:10px 14px;font-weight:600;font-size:14px}
+.review-item{padding:10px 14px;border-bottom:1px solid #eee;cursor:pointer;transition:background .15s}
+.review-item:hover{background:#f0f7ff}
+.review-item.selected{background:#e8f0fb;border-left:3px solid #2d5f8a}
+.review-item-name{font-weight:600;font-size:13px}
+.review-item-sub{font-size:12px;color:#888;margin-top:2px}
+.review-detail-panel{}
+.detail-field{margin-bottom:10px}
+.detail-label{font-size:11px;color:#888;margin-bottom:2px}
+.detail-value{font-size:14px;font-weight:500;word-break:break-word}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.detail-full{grid-column:1/-1}
 
-    /* ── Amount ── */
-    td.amt { text-align: right; font-variant-numeric: tabular-nums; }
-    td.amt.bold { font-weight: 700; color: #1a3a5c; }
+/* ── Image area ── */
+.img-drop{border:2px dashed #bcd0e8;border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:10px}
+.img-drop:hover,.img-drop.over{border-color:#2d5f8a;background:#f0f7ff}
+.img-preview{width:100%;border-radius:6px;border:1px solid #ddd;display:block;cursor:zoom-in;max-height:300px;object-fit:contain;background:#f8f9fa}
 
-    /* ── Pagination ── */
-    .pagination { display: flex; justify-content: flex-end; align-items: center;
-                  padding: 10px 16px; gap: 6px; border-top: 1px solid #eee; flex-wrap: wrap; }
-    .pgbtn { padding: 4px 10px; border: 1px solid #ddd; border-radius: 4px;
-             cursor: pointer; background: white; font-size: 13px; font-family: inherit; }
-    .pgbtn:hover { background: #f0f2f5; }
-    .pgbtn.active { background: #2d5f8a; color: white; border-color: #2d5f8a; }
-    .pgbtn:disabled { opacity: .45; cursor: not-allowed; }
-    .pg-info { font-size: 12px; color: #888; margin-right: auto; }
+/* ── AI Result ── */
+.ai-result{background:#f5f3ff;border:1px solid #c4b5fd;border-radius:8px;padding:14px;margin-top:12px}
+.ai-result-title{font-weight:700;color:#5b21b6;margin-bottom:8px;font-size:14px}
+.ai-result-body{font-size:13px;line-height:1.7;white-space:pre-wrap;word-break:break-word}
+.ai-verdict{display:inline-block;padding:4px 14px;border-radius:20px;font-weight:700;font-size:13px;margin-top:10px}
+.ai-verdict.ok{background:#dcfce7;color:#166534}
+.ai-verdict.warn{background:#fef3c7;color:#92400e}
+.ai-verdict.ng{background:#fee2e2;color:#991b1b}
 
-    /* ── Empty state ── */
-    .empty { text-align: center; padding: 40px; color: #bbb; font-size: 14px; }
+/* ── Review decision ── */
+.decision-bar{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center}
+.decision-note{width:100%;border:1px solid #ddd;border-radius:6px;padding:7px 10px;font-size:13px;font-family:inherit;resize:vertical;min-height:60px}
+.decision-note:focus{outline:none;border-color:#2d5f8a}
+.decision-status{display:flex;gap:6px}
+.ds-btn{padding:6px 16px;border-radius:20px;border:2px solid transparent;cursor:pointer;font-weight:700;font-size:13px;font-family:inherit;transition:all .2s}
+.ds-btn.ds-approve{border-color:#16a34a;color:#16a34a;background:white}.ds-btn.ds-approve:hover,.ds-btn.ds-approve.active{background:#16a34a;color:white}
+.ds-btn.ds-check{border-color:#d97706;color:#d97706;background:white}.ds-btn.ds-check:hover,.ds-btn.ds-check.active{background:#d97706;color:white}
+.ds-btn.ds-reject{border-color:#dc2626;color:#dc2626;background:white}.ds-btn.ds-reject:hover,.ds-btn.ds-reject.active{background:#dc2626;color:white}
 
-    /* ── Member stats ── */
-    .mtable { width: 100%; border-collapse: collapse; }
-    .mtable th, .mtable td { padding: 8px 12px; border-bottom: 1px solid #eee; font-size: 13px; }
-    .mtable th { background: #f4f6f9; font-weight: 600; }
-    .mtable td.amt { text-align: right; font-variant-numeric: tabular-nums; }
+/* ── Knowledge Base ── */
+.kb-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:900px){.kb-grid{grid-template-columns:1fr}}
+.kb-textarea{width:100%;border:1px solid #ddd;border-radius:6px;padding:9px 11px;font-size:13px;font-family:inherit;resize:vertical;min-height:180px;line-height:1.6}
+.kb-textarea:focus{outline:none;border-color:#2d5f8a}
+.judgment-item{background:#f8f9fa;border:1px solid #e5e7eb;border-radius:8px;padding:12px 14px;margin-bottom:8px;position:relative}
+.judgment-title{font-weight:700;color:#1a3a5c;margin-bottom:4px}
+.judgment-meta{font-size:12px;color:#888;margin-bottom:6px}
+.judgment-text{font-size:13px;line-height:1.6}
+.judgment-del{position:absolute;top:10px;right:10px}
+.add-judgment-form{background:#f0f7ff;border:1px solid #bcd0e8;border-radius:8px;padding:14px;margin-top:10px}
+.form-row{margin-bottom:10px}
+.form-label{font-size:12px;color:#555;margin-bottom:3px;display:block}
+.form-input{width:100%;border:1px solid #ddd;border-radius:6px;padding:6px 9px;font-size:13px;font-family:inherit}
+.form-input:focus{outline:none;border-color:#2d5f8a}
+.form-textarea{width:100%;border:1px solid #ddd;border-radius:6px;padding:6px 9px;font-size:13px;font-family:inherit;resize:vertical;min-height:80px}
+.form-textarea:focus{outline:none;border-color:#2d5f8a}
 
-    /* ── Detail modal ── */
-    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.48);
-               z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-    .modal { background: white; border-radius: 14px; max-width: 720px; width: 100%;
-             max-height: 92vh; overflow-y: auto; padding: 28px; position: relative; }
-    .modal-close { position: absolute; top: 14px; right: 14px; background: #e9ecef;
-                   border: none; border-radius: 50%; width: 32px; height: 32px;
-                   cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
-    .modal-title { font-size: 17px; font-weight: 700; color: #1a3a5c; margin-bottom: 18px; padding-right: 40px; }
-    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .di { }
-    .di.full { grid-column: 1 / -1; }
-    .di-label { font-size: 11px; color: #888; margin-bottom: 2px; }
-    .di-value { font-size: 14px; font-weight: 500; word-break: break-word; }
-    .hr { border: none; border-top: 1px solid #eee; margin: 16px 0; grid-column: 1 / -1; }
+/* ── Settings ── */
+.settings-group{margin-bottom:20px}
+.settings-label{font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;display:block}
+.settings-input{width:100%;border:1px solid #ddd;border-radius:6px;padding:8px 11px;font-size:13px;font-family:inherit;max-width:500px}
+.settings-input:focus{outline:none;border-color:#2d5f8a}
+.settings-desc{font-size:12px;color:#888;margin-top:4px}
+.settings-saved{color:#16a34a;font-size:12px;font-weight:600;margin-left:10px;display:none}
 
-    /* ── Issue items in modal ── */
-    .issue-box { padding: 10px 13px; border-radius: 8px; margin-bottom: 8px; display: flex; gap: 10px; }
-    .issue-box.err  { background: #fff4f4; border-left: 3px solid #dc3545; }
-    .issue-box.warn { background: #fffbee; border-left: 3px solid #e6a100; }
-    .issue-box.none { background: #f0fdf4; border-left: 3px solid #22c55e; }
-    .ib-icon { font-size: 16px; margin-top: 1px; flex-shrink: 0; }
-    .ib-lbl { font-weight: 600; font-size: 13px; }
-    .ib-desc { font-size: 12px; color: #666; margin-top: 2px; }
+/* ── Receipt gallery ── */
+.receipt-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:12px}
+.receipt-card{background:white;border-radius:8px;border:1px solid #e5e7eb;overflow:hidden;cursor:pointer;transition:all .2s}
+.receipt-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.12);transform:translateY(-1px)}
+.receipt-card.linked{border-color:#2d5f8a;border-width:2px}
+.receipt-thumb{width:100%;height:130px;object-fit:cover;background:#f8f9fa;display:block}
+.receipt-info{padding:8px 10px;font-size:12px}
+.receipt-link-badge{background:#dcfce7;color:#166534;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:600}
+.receipt-unlink-badge{background:#fee2e2;color:#991b1b;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:600}
 
-    /* ── Help panel ── */
-    .help-panel { background: #f0f7ff; border: 1px solid #c5d8f0; border-radius: 10px;
-                  padding: 18px 20px; margin-bottom: 18px; }
-    .help-panel h3 { color: #1a3a5c; margin-bottom: 12px; font-size: 15px; }
-    .help-item { display: flex; gap: 10px; margin-bottom: 8px; font-size: 13px; }
-    .help-item .hl { font-weight: 600; min-width: 160px; }
+/* ── Modal ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:white;border-radius:12px;max-width:800px;width:100%;max-height:92vh;overflow-y:auto;padding:24px;position:relative}
+.modal-lg{max-width:1000px}
+.modal-close{position:absolute;top:12px;right:12px;background:#f3f4f6;border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center}
+.modal-title{font-size:16px;font-weight:700;color:#1a3a5c;margin-bottom:16px;padding-right:36px}
 
-    .hidden { display: none !important; }
+/* ── Notification ── */
+.notif{position:fixed;bottom:24px;right:24px;background:#1a3a5c;color:white;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.25);transform:translateY(100px);transition:transform .3s}
+.notif.show{transform:translateY(0)}
 
-    @media print {
-      .app-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .filter-bar, .tabs, .btn, .overlay, #helpPanel { display: none !important; }
-      .dtable th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      body { background: white; }
-      .table-wrap { box-shadow: none; }
-    }
-  </style>
+/* ── Misc ── */
+.empty{text-align:center;padding:36px;color:#bbb;font-size:14px}
+.hidden{display:none!important}
+.divider{border:none;border-top:1px solid #eee;margin:14px 0}
+.text-muted{color:#888;font-size:12px}
+.loader{display:flex;align-items:center;gap:8px;color:#6b7280;font-size:13px;padding:10px 0}
+.loader::before{content:'';width:16px;height:16px;border:2px solid #e5e7eb;border-top-color:#7c3aed;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.issue-box{padding:10px 13px;border-radius:8px;margin-bottom:8px;display:flex;gap:10px}
+.issue-box.err{background:#fff4f4;border-left:3px solid #ef4444}
+.issue-box.warn{background:#fffbee;border-left:3px solid #f59e0b}
+.issue-box.none{background:#f0fdf4;border-left:3px solid #22c55e}
+.ib-lbl{font-weight:600;font-size:13px}
+.ib-desc{font-size:12px;color:#666;margin-top:2px}
+.info-box{background:#eff6ff;border:1px solid #bcd0e8;border-radius:8px;padding:12px 14px;font-size:13px;color:#1e40af;margin-bottom:12px}
+.warn-box{background:#fffbee;border:1px solid #fde68a;border-radius:8px;padding:12px 14px;font-size:13px;color:#92400e;margin-bottom:12px}
+.progress-note{font-size:12px;color:#6b7280;margin-top:6px}
+
+@media print{
+  .app-header{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .nav-tabs,.filter-bar,.btn,.overlay,.decision-bar{display:none!important}
+  .dtable th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{background:white}
+  .table-wrap,.card{box-shadow:none}
+}
+</style>
 </head>
 <body>
 
 <!-- ====== Header ====== -->
 <header class="app-header">
-  <div class="header-inner">
+  <div class="header-row">
     <div>
-      <div class="header-title">政務活動費 審査支援ツール</div>
-      <div class="header-sub">横須賀市議会 ／ セムカンCSV対応版</div>
+      <div class="header-title">政務活動費 審査システム</div>
+      <div class="header-sub">横須賀市議会 ／ セムカン連携対応</div>
     </div>
-    <span class="header-badge">Ver 1.0</span>
+    <nav class="nav-tabs">
+      <button class="nav-tab active" onclick="showTab('csv')" id="navCsv">📊 全体確認</button>
+      <button class="nav-tab" onclick="showTab('receipt')" id="navReceipt">🧾 領収書確認</button>
+      <button class="nav-tab" onclick="showTab('review')" id="navReview">🔍 個別審査</button>
+      <button class="nav-tab" onclick="showTab('kb')" id="navKb">📚 知識ベース</button>
+      <button class="nav-tab" onclick="showTab('settings')" id="navSettings">⚙️ 設定</button>
+    </nav>
   </div>
 </header>
 
 <div class="wrap">
 
-  <!-- ====== Upload ====== -->
-  <div id="uploadSection">
-    <div class="upload-section">
-      <div class="drop-zone" id="dropZone">
+<!-- ============================================================
+     TAB 1: 全体確認 (CSV)
+     ============================================================ -->
+<div id="tab-csv" class="tab-panel active">
+  <div id="csvUploadArea">
+    <div class="card">
+      <div class="drop-zone" id="csvDrop">
         <div class="drop-icon">📂</div>
-        <div class="drop-text">
-          <strong>CSVファイルをここにドロップ</strong><br>
-          またはクリックしてファイルを選択
-        </div>
-        <div class="drop-hint">
-          セムカンからエクスポートした CSV に対応 ／ ファイルはPC内のみで処理されます（外部送信なし）
-        </div>
-        <input type="file" id="fileInput" accept=".csv">
+        <div class="drop-text"><strong>セムカンCSVをここにドロップ</strong><br>またはクリックしてファイルを選択</div>
+        <div class="drop-hint">ファイルはこのPC内のみで処理されます（外部送信なし）</div>
+        <input type="file" id="csvFileInput" accept=".csv">
       </div>
     </div>
   </div>
 
-  <!-- ====== Dashboard (hidden until loaded) ====== -->
-  <div id="dashboard" class="hidden">
-
-    <!-- Info bar -->
-    <div class="info-bar">
-      <div class="info-left">
-        <span class="info-icon">📋</span>
-        <div>
-          <strong id="fileName"></strong>
-          <span id="fileStats" style="color:#999;margin-left:10px;font-size:12px;"></span>
-        </div>
+  <div id="csvDashboard" class="hidden">
+    <!-- info bar -->
+    <div style="background:white;border-radius:10px;padding:10px 16px;box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <div style="display:flex;align-items:center;gap:10px;font-size:13px">
+        <span style="font-size:20px">📋</span>
+        <div><strong id="csvFileName"></strong><span id="csvFileStat" style="color:#999;margin-left:10px;font-size:12px"></span></div>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn btn-help" onclick="toggleHelp()">❓ チェックルール説明</button>
-        <button class="btn btn-secondary" onclick="resetApp()">別ファイルを開く</button>
-        <button class="btn btn-print" onclick="window.print()">🖨 印刷 / PDF保存</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-light" onclick="toggleHelp()">❓ チェックルール</button>
+        <button class="btn btn-secondary" onclick="resetCSV()">別ファイル</button>
+        <button class="btn btn-success" onclick="window.print()">🖨 印刷/PDF</button>
       </div>
     </div>
-
-    <!-- Help panel -->
-    <div id="helpPanel" class="help-panel hidden">
-      <h3>🔍 自動チェックルール一覧</h3>
-      <div class="help-item"><span class="hl badge err">🔴 領収書・証明書ともなし</span>領収書が「無」かつ支払証明書への記載も「無」の支出。根拠書類が必要です。</div>
-      <div class="help-item"><span class="hl badge err">🔴 按分計算エラー</span>充当方法が「按分」の場合、金額×按分率と充当金額が一致するか検証します。</div>
-      <div class="help-item"><span class="hl badge warn">🟡 未完了</span>ステータスが「未完了」の支出。審査・修正が必要です。</div>
-      <div class="help-item"><span class="hl badge warn">🟡 ガソリン代・全額充当</span>ガソリン代（交通費ガソリン）は公私按分（通常1/2）が必要です。全額充当の場合は根拠確認が必要です。</div>
-      <div class="help-item"><span class="hl badge warn">🟡 携帯電話・全額充当</span>携帯電話料金等の通信費は公私按分が必要な場合があります。専用端末の根拠を確認してください。</div>
-      <div class="help-item"><span class="hl badge warn">🟡 クラウドサービス</span>Google One・Apple iCloud 等の個人向けクラウドサービスは対象外の可能性があります。</div>
-      <div class="help-item"><span class="hl badge warn">🟡 摘要・備考なし</span>支出の目的・内容が摘要にも備考にも記載されていない支出。</div>
-      <div style="margin-top:12px;font-size:12px;color:#666;">
-        ※ このツールは自動チェックの補助です。最終判断は必ず担当職員が行ってください。
+    <div id="helpBox" class="hidden" style="background:#eff6ff;border:1px solid #bcd0e8;border-radius:10px;padding:16px 18px;margin-bottom:14px;font-size:13px">
+      <strong style="color:#1a3a5c;display:block;margin-bottom:10px">🔍 自動チェックルール</strong>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div><span class="badge badge-err">領収書・証明書ともなし</span> 根拠書類が一切ない支出</div>
+        <div><span class="badge badge-err">按分計算エラー</span> 按分率と充当金額が不一致</div>
+        <div><span class="badge badge-warn">未完了</span> ステータスが未完了の支出</div>
+        <div><span class="badge badge-warn">ガソリン全額充当</span> 按分（通常1/2）が必要</div>
+        <div><span class="badge badge-warn">通信費全額充当</span> 携帯電話等は按分が必要</div>
+        <div><span class="badge badge-warn">クラウドサービス</span> Google/Apple等は要確認</div>
+        <div><span class="badge badge-warn">摘要なし</span> 使途の説明が未記入</div>
       </div>
+      <div class="text-muted" style="margin-top:8px">※ 自動チェックは補助ツールです。最終判断は担当職員が行ってください。</div>
     </div>
-
-    <!-- Summary cards -->
-    <div class="summary-grid" id="summaryGrid"></div>
-
-    <!-- Filter bar -->
+    <div class="sum-grid" id="sumGrid"></div>
     <div class="filter-bar">
-      <div class="fg"><label class="fl">対象者:</label>
-        <select class="fs" id="filterMember" onchange="applyFilters()"><option value="">すべて</option></select>
-      </div>
-      <div class="fg"><label class="fl">項目:</label>
-        <select class="fs" id="filterCategory" onchange="applyFilters()"><option value="">すべて</option></select>
-      </div>
-      <div class="fg"><label class="fl">問題レベル:</label>
-        <select class="fs" id="filterLevel" onchange="applyFilters()">
-          <option value="">すべて</option>
-          <option value="error">🔴 要修正</option>
-          <option value="warning">🟡 要確認</option>
-          <option value="ok">✅ 問題なし</option>
+      <div class="fg"><label class="fl">対象者:</label><select class="fs" id="f_member" onchange="applyF()"><option value="">すべて</option></select></div>
+      <div class="fg"><label class="fl">項目:</label><select class="fs" id="f_cat" onchange="applyF()"><option value="">すべて</option></select></div>
+      <div class="fg"><label class="fl">問題:</label>
+        <select class="fs" id="f_level" onchange="applyF()">
+          <option value="">すべて</option><option value="error">🔴 要修正</option>
+          <option value="warning">🟡 要確認</option><option value="ok">✅ 問題なし</option>
         </select>
       </div>
       <div class="fg"><label class="fl">ステータス:</label>
-        <select class="fs" id="filterStatus" onchange="applyFilters()">
-          <option value="">すべて</option>
-          <option value="完了">完了</option>
-          <option value="未完了">未完了</option>
+        <select class="fs" id="f_status" onchange="applyF()">
+          <option value="">すべて</option><option value="完了">完了</option><option value="未完了">未完了</option>
         </select>
       </div>
-      <div class="fg">
-        <input type="text" class="fi" id="filterSearch" placeholder="キーワード検索（支払先・摘要など）" oninput="applyFilters()">
-      </div>
+      <div class="fg"><input type="text" class="fi" id="f_kw" placeholder="キーワード検索..." oninput="applyF()"></div>
     </div>
-
-    <!-- Tabs -->
-    <div class="tabs">
-      <div class="tab active" id="tab-all"     onclick="switchTab('all')">すべての支出 <span class="tbadge g" id="badge-all">0</span></div>
-      <div class="tab"        id="tab-error"   onclick="switchTab('error')">要修正 <span class="tbadge r" id="badge-error">0</span></div>
-      <div class="tab"        id="tab-warning" onclick="switchTab('warning')">要確認 <span class="tbadge y" id="badge-warning">0</span></div>
-      <div class="tab"        id="tab-ok"      onclick="switchTab('ok')">問題なし <span class="tbadge g" id="badge-ok">0</span></div>
-      <div class="tab"        id="tab-member"  onclick="switchTab('member')">議員別集計</div>
+    <div class="sub-tabs">
+      <div class="sub-tab active" id="stab-all"     onclick="switchSTab('all')">すべて <span class="tbadge tbadge-g" id="sb-all">0</span></div>
+      <div class="sub-tab"        id="stab-error"   onclick="switchSTab('error')">要修正 <span class="tbadge tbadge-r" id="sb-error">0</span></div>
+      <div class="sub-tab"        id="stab-warning" onclick="switchSTab('warning')">要確認 <span class="tbadge tbadge-y" id="sb-warning">0</span></div>
+      <div class="sub-tab"        id="stab-ok"      onclick="switchSTab('ok')">問題なし <span class="tbadge tbadge-g" id="sb-ok">0</span></div>
+      <div class="sub-tab"        id="stab-member"  onclick="switchSTab('member')">議員別集計</div>
     </div>
-
-    <!-- Table + pagination -->
-    <div class="table-wrap">
-      <div class="table-scroll" id="tableContent"></div>
-      <div class="pagination"   id="pagination"></div>
-    </div>
-
-  </div><!-- /dashboard -->
-</div><!-- /wrap -->
-
-<!-- ====== Detail Modal ====== -->
-<div class="overlay hidden" id="detailOverlay" onclick="overlayClick(event)">
-  <div class="modal" id="modalBox">
-    <button class="modal-close" onclick="closeModal()">✕</button>
-    <div class="modal-title" id="modalTitle"></div>
-    <div id="modalBody"></div>
+    <div class="table-wrap"><div class="table-scroll" id="csvTable"></div><div class="pager" id="csvPager"></div></div>
   </div>
 </div>
 
-<!-- ====================================================
+<!-- ============================================================
+     TAB 2: 領収書確認
+     ============================================================ -->
+<div id="tab-receipt" class="tab-panel">
+  <div id="receiptNoCSV" class="card">
+    <div class="info-box">📊 まず「全体確認」タブでCSVを読み込んでください。CSVを読み込むと申請一覧と照合できます。</div>
+    <p style="color:#888;font-size:13px">CSVがなくても領収書画像のアップロード・AI分析は行えます。</p>
+  </div>
+  <div class="card">
+    <div class="section-title">🧾 セムカンのスクリーンショット・領収書画像をアップロード</div>
+    <div class="drop-zone" id="imgDrop" style="padding:24px">
+      <div class="drop-icon" style="font-size:36px">🖼</div>
+      <div class="drop-text">画像をドロップ またはクリックして選択<br><span style="font-size:12px;color:#999">（複数可 ／ PNG・JPG・GIF 対応）</span></div>
+      <input type="file" id="imgFileInput" accept="image/*" multiple>
+    </div>
+    <div id="receiptGallery" class="receipt-gallery"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     TAB 3: 個別審査
+     ============================================================ -->
+<div id="tab-review" class="tab-panel">
+  <div id="reviewNoCSV" class="card">
+    <div class="info-box">📊 まず「全体確認」タブでCSVを読み込んでください。読み込み後、個別審査が行えます。</div>
+  </div>
+  <div id="reviewMain" class="hidden">
+    <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+      <div class="fg"><label class="fl">対象者:</label><select class="fs" id="rv_member" onchange="filterReviewList()"><option value="">すべて</option></select></div>
+      <div class="fg"><label class="fl">問題:</label>
+        <select class="fs" id="rv_level" onchange="filterReviewList()">
+          <option value="">すべて</option><option value="error">要修正</option><option value="warning">要確認</option><option value="ok">問題なし</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">審査:</label>
+        <select class="fs" id="rv_dec" onchange="filterReviewList()">
+          <option value="">すべて</option><option value="承認">承認済</option><option value="要確認">要確認</option><option value="不承認">不承認</option><option value="_none">未審査</option>
+        </select>
+      </div>
+      <span class="text-muted" id="rv_count"></span>
+    </div>
+    <div class="review-layout">
+      <!-- Left: list -->
+      <div class="review-list-panel">
+        <div class="review-list-header">申請一覧 <span id="rv_list_count" style="font-weight:400;font-size:12px;opacity:.8"></span></div>
+        <div id="reviewList" style="max-height:680px;overflow-y:auto"></div>
+      </div>
+      <!-- Right: detail -->
+      <div id="reviewDetail">
+        <div class="card" style="color:#aaa;text-align:center;padding:40px">
+          ← 左の一覧から申請を選択してください
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     TAB 4: 知識ベース
+     ============================================================ -->
+<div id="tab-kb" class="tab-panel">
+  <div class="card">
+    <div class="section-title">📚 条例・施行規則・運用マニュアル</div>
+    <p class="text-muted" style="margin-bottom:14px">テキストを貼り付けて保存してください。AI審査の判断根拠として自動的に使用されます。</p>
+    <div class="kb-grid">
+      <div>
+        <label class="form-label" style="font-weight:700">横須賀市政務活動費条例</label>
+        <textarea class="kb-textarea" id="kb_jorei" placeholder="条例の本文を貼り付けてください..."></textarea>
+      </div>
+      <div>
+        <label class="form-label" style="font-weight:700">施行規則</label>
+        <textarea class="kb-textarea" id="kb_kisoku" placeholder="施行規則の本文を貼り付けてください..."></textarea>
+      </div>
+      <div style="grid-column:1/-1">
+        <label class="form-label" style="font-weight:700">運用マニュアル</label>
+        <textarea class="kb-textarea" id="kb_manual" placeholder="運用マニュアルの本文を貼り付けてください...（PDF等をコピー&ペースト）" style="min-height:220px"></textarea>
+      </div>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+      <button class="btn btn-primary" onclick="saveKB()">💾 保存する</button>
+      <span id="kb_saved" class="settings-saved">✓ 保存しました</span>
+    </div>
+    <div class="progress-note" id="kb_status" style="margin-top:8px"></div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">⚖️ 判例管理</div>
+    <p class="text-muted" style="margin-bottom:12px">必要な時に判例を追加できます。AI審査の参考資料として使用されます。</p>
+    <div id="judgmentList"></div>
+    <button class="btn btn-light" onclick="toggleAddJudgment()" style="margin-top:8px">＋ 判例を追加する</button>
+    <div id="addJudgmentForm" class="add-judgment-form hidden" style="margin-top:12px">
+      <div class="form-row">
+        <label class="form-label">判例タイトル（例：○○高裁 令和×年判決）</label>
+        <input type="text" class="form-input" id="jTitle" placeholder="○○高等裁判所 令和○年○月○日判決">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-row">
+          <label class="form-label">裁判所・事件番号</label>
+          <input type="text" class="form-input" id="jCourt" placeholder="○○高裁 令和○年（行コ）第○号">
+        </div>
+        <div class="form-row">
+          <label class="form-label">判決日</label>
+          <input type="text" class="form-input" id="jDate" placeholder="令和○年○月○日">
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">判決の要旨・概要</label>
+        <textarea class="form-textarea" id="jSummary" placeholder="どのような判断がなされたか..."></textarea>
+      </div>
+      <div class="form-row">
+        <label class="form-label">審査への適用ポイント（何を認めた・認めなかったか）</label>
+        <textarea class="form-textarea" id="jPoints" placeholder="例：○○費用は政務活動費として認められないと判断。理由は..."></textarea>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="addJudgment()">追加する</button>
+        <button class="btn btn-light" onclick="toggleAddJudgment()">キャンセル</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     TAB 5: 設定
+     ============================================================ -->
+<div id="tab-settings" class="tab-panel">
+  <div class="card" style="max-width:680px">
+    <div class="section-title">⚙️ Claude AI 設定</div>
+    <div class="info-box">
+      AI審査機能（領収書の自動読み取り・条例照合）を使うには、Claude API キーが必要です。<br>
+      APIキーは <strong>Anthropic Console</strong> から取得できます。<br>
+      キーはこのPC内にのみ保存され、外部には一切送信されません。
+    </div>
+    <div class="settings-group">
+      <label class="settings-label">Claude API キー</label>
+      <input type="password" class="settings-input" id="set_apikey" placeholder="sk-ant-api03-...">
+      <div class="settings-desc">Anthropic Console（console.anthropic.com）で発行したAPIキーを入力してください</div>
+    </div>
+    <div class="settings-group">
+      <label class="settings-label">使用するモデル</label>
+      <select class="settings-input" id="set_model">
+        <option value="claude-sonnet-4-6">claude-sonnet-4-6（推奨 - 高精度）</option>
+        <option value="claude-haiku-4-5-20251001">claude-haiku-4-5（高速・低コスト）</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" onclick="saveSettings()">💾 保存する</button>
+    <span id="set_saved" class="settings-saved" style="margin-left:10px">✓ 保存しました</span>
+    <hr class="divider">
+    <div class="section-title" style="margin-bottom:10px">🗑 データ管理</div>
+    <button class="btn btn-light" onclick="clearReviews()">審査結果をリセット</button>
+    <div class="text-muted" style="margin-top:6px">CSV・画像は保存されません。審査結果（承認/不承認/メモ）のみ保存されます。</div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<!-- ====== Detail Modal (Phase 1) ====== -->
+<div class="overlay hidden" id="detailOverlay" onclick="overlayClose(event,'detailOverlay')">
+  <div class="modal">
+    <button class="modal-close" onclick="hide('detailOverlay')">✕</button>
+    <div class="modal-title" id="detailTitle"></div>
+    <div id="detailBody"></div>
+  </div>
+</div>
+
+<!-- ====== Image lightbox ====== -->
+<div class="overlay hidden" id="imgLightbox" onclick="hide('imgLightbox')">
+  <div style="max-width:90vw;max-height:90vh;position:relative">
+    <img id="lightboxImg" src="" style="max-width:90vw;max-height:90vh;border-radius:8px;display:block">
+    <button onclick="hide('imgLightbox')" style="position:absolute;top:-36px;right:0;background:rgba(255,255,255,.9);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px">✕</button>
+  </div>
+</div>
+
+<!-- ====== Notification ====== -->
+<div class="notif" id="notif"></div>
+
+<!-- ============================================================
      JAVASCRIPT
-     ==================================================== -->
+     ============================================================ -->
 <script>
 'use strict';
 
-// ── Column index map ──────────────────────────────────
+// ── Column map ────────────────────────────────────────
 const C = {
-  申請番号:0, 交付対象:1, 確認ルート:2, 対象者:3, タイプ:4,
-  整理番号:5, ステータス:6, 項目:7, 細目:8, 日付:9,
-  金額:10, 一部充当:11, 充当金額:12, 充当方法:13, 按分1:14, 按分2:15,
-  支払先:16, 摘要:17, 備考:18, 使用者:19,
-  領収書:20, 証明書:21, 理由:22,
-  作成者:23, 作成日時:24, 更新者:25, 更新日時:26
+  申請番号:0,交付対象:1,確認ルート:2,対象者:3,タイプ:4,
+  整理番号:5,ステータス:6,項目:7,細目:8,日付:9,
+  金額:10,一部充当:11,充当金額:12,充当方法:13,按分1:14,按分2:15,
+  支払先:16,摘要:17,備考:18,使用者:19,
+  領収書:20,証明書:21,理由:22,作成者:23,作成日時:24,更新者:25,更新日時:26
 };
 
-// ── Check definitions ─────────────────────────────────
+// ── Auto-check definitions ────────────────────────────
 const CHECKS = [
-  {
-    id: 'no_docs', level: 'error',
-    label: '領収書・証明書ともなし',
-    desc:  '領収書も支払証明書への記載もありません。支出根拠書類が必要です。',
-    fn: r => r[C.タイプ]==='支出' && r[C.領収書]==='無' && r[C.証明書]==='無'
-  },
-  {
-    id: 'calc_err', level: 'error',
-    label: '按分計算エラー',
-    desc:  '按分率と充当金額が計算上一致しません。金額・按分率を確認してください。',
+  { id:'no_docs',  level:'error',   label:'領収書・証明書ともなし', desc:'領収書も支払証明書への記載もありません。根拠書類が必要です。',
+    fn: r => r[C.タイプ]==='支出' && r[C.領収書]==='無' && r[C.証明書]==='無' },
+  { id:'calc_err', level:'error',   label:'按分計算エラー', desc:'按分率と充当金額が計算上一致しません。',
     fn: r => {
-      if (r[C.充当方法]!=='按分') return false;
-      const total   = parseInt(r[C.金額]);
-      const applied = parseInt(r[C.充当金額]);
-      const ratio   = r[C.按分1];
-      if (!ratio || isNaN(total) || isNaN(applied)) return false;
-      const parts = ratio.split('/');
-      if (parts.length !== 2) return false;
-      const num = parseInt(parts[0]), den = parseInt(parts[1]);
-      if (isNaN(num)||isNaN(den)||den===0) return false;
-      const calc = total * num / den;
-      // Allow floor / round / ceil
-      return Math.abs(applied - calc) > 1;
-    }
-  },
-  {
-    id: 'incomplete', level: 'warning',
-    label: '未完了',
-    desc:  'ステータスが未完了です。審査・修正が必要です。',
-    fn: r => r[C.タイプ]==='支出' && r[C.ステータス]==='未完了'
-  },
-  {
-    id: 'gas_full', level: 'warning',
-    label: 'ガソリン代：全額充当',
-    desc:  'ガソリン代は公私按分（通常1/2）が必要です。全額充当の根拠を確認してください。',
-    fn: r => r[C.細目]==='交通費（ガソリン）' && r[C.充当方法]==='全額充当'
-  },
-  {
-    id: 'comm_full', level: 'warning',
-    label: '通信費（携帯等）：全額充当',
-    desc:  '携帯電話料金等は公私按分が必要な場合があります。専用端末でない限り按分が必要です。',
-    fn: r => {
-      if (r[C.細目]!=='通信運搬費' || r[C.充当方法]!=='全額充当' || r[C.タイプ]!=='支出') return false;
-      const t = (r[C.摘要]||'') + (r[C.支払先]||'') + (r[C.備考]||'');
-      return /携帯|電話|スマホ|NTT|docomo|ドコモ|au|ソフトバンク|Softbank|iPhone|Android/i.test(t);
-    }
-  },
-  {
-    id: 'cloud', level: 'warning',
-    label: 'クラウドサービス費用',
-    desc:  '個人向けクラウドサービスは政務活動費の対象外となる可能性があります。',
-    fn: r => {
-      if (r[C.タイプ]!=='支出') return false;
-      const t = (r[C.支払先]||'').toLowerCase() + (r[C.摘要]||'').toLowerCase();
-      return /google|apple|dropbox|icloud|クラウド|google one/i.test(t);
-    }
-  },
-  {
-    id: 'no_desc', level: 'warning',
-    label: '摘要・備考なし',
-    desc:  '支出の目的・内容が記載されていません。使途の説明が必要です。',
-    fn: r => r[C.タイプ]==='支出' && !(r[C.摘要]||'').trim() && !(r[C.備考]||'').trim()
-  }
+      if(r[C.充当方法]!=='按分') return false;
+      const tot=parseInt(r[C.金額]),app=parseInt(r[C.充当金額]),rat=r[C.按分1];
+      if(!rat||isNaN(tot)||isNaN(app)) return false;
+      const p=rat.split('/'); if(p.length!==2) return false;
+      const calc=tot*parseInt(p[0])/parseInt(p[1]);
+      return Math.abs(app-calc)>1;
+    }},
+  { id:'undone',   level:'warning', label:'未完了', desc:'ステータスが未完了です。', fn: r => r[C.タイプ]==='支出'&&r[C.ステータス]==='未完了' },
+  { id:'gas_full', level:'warning', label:'ガソリン代・全額充当', desc:'ガソリン代は公私按分（通常1/2）が必要です。', fn: r => r[C.細目]==='交通費（ガソリン）'&&r[C.充当方法]==='全額充当' },
+  { id:'tel_full', level:'warning', label:'通信費（携帯等）・全額充当', desc:'携帯電話料金等は公私按分が必要な場合があります。',
+    fn: r => { if(r[C.細目]!=='通信運搬費'||r[C.充当方法]!=='全額充当'||r[C.タイプ]!=='支出') return false;
+               return /携帯|電話|スマホ|NTT|docomo|ドコモ|au|ソフトバンク/i.test((r[C.摘要]||'')+(r[C.支払先]||'')); }},
+  { id:'cloud',    level:'warning', label:'クラウドサービス費用', desc:'個人向けクラウドサービスは対象外の可能性があります。',
+    fn: r => { if(r[C.タイプ]!=='支出') return false; return /google|apple|dropbox|icloud|クラウド/i.test((r[C.支払先]||'').toLowerCase()+(r[C.摘要]||'').toLowerCase()); }},
+  { id:'no_desc',  level:'warning', label:'摘要・備考なし', desc:'支出の目的・内容が記載されていません。',
+    fn: r => r[C.タイプ]==='支出'&&!(r[C.摘要]||'').trim()&&!(r[C.備考]||'').trim() }
 ];
 
-// ── CSV parser (handles quoted multi-line fields) ─────
+// ── Storage ───────────────────────────────────────────
+const SK = { kb:'seimu_kb', judgments:'seimu_judgments', reviews:'seimu_reviews', apikey:'seimu_apikey', model:'seimu_model' };
+const load  = k => { try{ return JSON.parse(localStorage.getItem(k)||'null'); }catch{ return null; } };
+const store = (k,v) => localStorage.setItem(k, JSON.stringify(v));
+const getKB = () => load(SK.kb) || {jorei:'',kisoku:'',manual:''};
+const getJudgments = () => load(SK.judgments) || [];
+const getReviews   = () => load(SK.reviews) || {};
+const getApiKey    = () => localStorage.getItem(SK.apikey) || '';
+const getModel     = () => localStorage.getItem(SK.model) || 'claude-sonnet-4-6';
+
+// ── CSV Parser ────────────────────────────────────────
 function parseCSV(text) {
   text = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
-  const rows = [];
-  let i = 0;
-  while (i < text.length) {
-    const row = [];
-    let first = true;
-    while (i < text.length) {
-      if (!first) {
-        if (text[i]===',') i++;
-        else break;
-      }
-      first = false;
-      let field = '';
-      if (i < text.length && text[i]==='"') {
+  const rows=[]; let i=0;
+  while(i<text.length){
+    const row=[]; let first=true;
+    while(i<text.length){
+      if(!first){ if(text[i]===',') i++; else break; }
+      first=false;
+      let f='';
+      if(i<text.length&&text[i]==='"'){
         i++;
-        while (i < text.length) {
-          if (text[i]==='"') {
-            if (text[i+1]==='"') { field+='"'; i+=2; }
-            else { i++; break; }
-          } else { field+=text[i]; i++; }
-        }
+        while(i<text.length){ if(text[i]==='"'){ if(text[i+1]==='"'){f+='"';i+=2;}else{i++;break;} }else{f+=text[i];i++;} }
       } else {
-        while (i < text.length && text[i]!==',' && text[i]!=='\n') { field+=text[i]; i++; }
+        while(i<text.length&&text[i]!==','&&text[i]!=='\n'){f+=text[i];i++;}
       }
-      row.push(field.trim());
+      row.push(f.trim());
     }
-    if (i < text.length && text[i]==='\n') i++;
-    if (row.length > 1 || (row.length===1 && row[0]!=='')) rows.push(row);
+    if(i<text.length&&text[i]==='\n') i++;
+    if(row.length>1||(row.length===1&&row[0]!=='')) rows.push(row);
   }
   return rows;
 }
 
 // ── App state ─────────────────────────────────────────
-let expenses = [];   // processed expense records
-let currentTab  = 'all';
+let expenses    = [];   // processed expense objects
+let receiptImgs = [];   // [{name, src, linked:'申請番号'|'', aiResult}]
+let currentSTab = 'all';
 let currentPage = 1;
+let selectedRvIdx = -1;
 const PAGE = 50;
 
-// ── Init ──────────────────────────────────────────────
-(function init() {
-  const zone  = document.getElementById('dropZone');
-  const input = document.getElementById('fileInput');
-  zone.addEventListener('click', () => input.click());
-  input.addEventListener('change', e => { if (e.target.files[0]) loadFile(e.target.files[0]); });
-  zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('over'); });
-  zone.addEventListener('dragleave', ()  => zone.classList.remove('over'));
-  zone.addEventListener('drop', e => {
-    e.preventDefault(); zone.classList.remove('over');
-    const f = e.dataTransfer.files[0];
-    if (f && f.name.toLowerCase().endsWith('.csv')) loadFile(f);
+// ── Utilities ─────────────────────────────────────────
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const fmt = n => (parseInt(n)||0).toLocaleString();
+const hide = id => document.getElementById(id).classList.add('hidden');
+const show = id => document.getElementById(id).classList.remove('hidden');
+
+function notify(msg, type='ok'){
+  const el=document.getElementById('notif');
+  el.textContent=msg;
+  el.style.background=type==='err'?'#dc2626':type==='warn'?'#d97706':'#1a3a5c';
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),3000);
+}
+
+function overlayClose(e,id){ if(e.target===document.getElementById(id)) hide(id); }
+
+// ── Tab navigation ────────────────────────────────────
+function showTab(name){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.getElementById('nav'+name.charAt(0).toUpperCase()+name.slice(1)).classList.add('active');
+  if(name==='kb') initKB();
+  if(name==='settings') initSettings();
+  if(name==='review') initReview();
+  if(name==='receipt') initReceipt();
+}
+
+// ════════════════════════════════════════════════════════
+// PHASE 1: 全体確認 (CSV)
+// ════════════════════════════════════════════════════════
+(function initCSV(){
+  const dz=document.getElementById('csvDrop'), fi=document.getElementById('csvFileInput');
+  dz.addEventListener('click',()=>fi.click());
+  fi.addEventListener('change',e=>{ if(e.target.files[0]) loadCSVFile(e.target.files[0]); });
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over');});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+  dz.addEventListener('drop',e=>{
+    e.preventDefault();dz.classList.remove('over');
+    const f=e.dataTransfer.files[0];
+    if(f&&f.name.toLowerCase().endsWith('.csv')) loadCSVFile(f);
     else alert('CSVファイルをドロップしてください');
   });
-  document.addEventListener('keydown', e => { if (e.key==='Escape') closeModal(); });
 })();
 
-function loadFile(file) {
-  const rd = new FileReader();
-  rd.onload = e => {
-    let text = e.target.result;
-    // Detect Shift-JIS (garbled UTF-8 attempt)
-    if (text.includes('�')) {
-      const rd2 = new FileReader();
-      rd2.onload = e2 => processCSV(e2.target.result, file.name);
-      rd2.readAsText(file, 'Shift-JIS');
-    } else {
-      processCSV(text, file.name);
-    }
-  };
-  rd.readAsText(file, 'UTF-8');
+function loadCSVFile(file){
+  const rd=new FileReader();
+  rd.onload=e=>{ let t=e.target.result; if(t.includes('?'+'?')||t.includes('�')){ const r2=new FileReader(); r2.onload=e2=>processCSV(e2.target.result,file.name); r2.readAsText(file,'Shift-JIS'); } else processCSV(t,file.name); };
+  rd.readAsText(file,'UTF-8');
 }
 
-function processCSV(text, filename) {
+function processCSV(text, filename){
   const rows = parseCSV(text);
-  if (rows.length < 2) { alert('データが見つかりません。'); return; }
-
-  const rawExpenses = rows.slice(1).filter(r => r[C.タイプ]==='支出');
-
-  expenses = rawExpenses.map((r, idx) => {
-    const issues = CHECKS.filter(c => c.fn(r)).map(c => ({id:c.id, level:c.level, label:c.label, desc:c.desc}));
-    const level  = issues.some(i=>i.level==='error') ? 'error' :
-                   issues.some(i=>i.level==='warning') ? 'warning' : 'ok';
-    return { r, issues, level, idx };
+  if(rows.length<2){ alert('データが見つかりません'); return; }
+  const rawExp = rows.slice(1).filter(r=>r[C.タイプ]==='支出');
+  expenses = rawExp.map((r,idx)=>{
+    const issues=CHECKS.filter(c=>c.fn(r)).map(c=>({id:c.id,level:c.level,label:c.label,desc:c.desc}));
+    const level=issues.some(i=>i.level==='error')?'error':issues.some(i=>i.level==='warning')?'warning':'ok';
+    return {r, issues, level, idx};
   });
-
-  document.getElementById('uploadSection').classList.add('hidden');
-  document.getElementById('dashboard').classList.remove('hidden');
-  document.getElementById('fileName').textContent = filename;
-  const total = rows.length - 1;
-  document.getElementById('fileStats').textContent = `全${total}行（支出: ${expenses.length}件）`;
-
-  populateFilters();
-  renderSummary();
-  applyFilters();
+  document.getElementById('csvFileName').textContent=filename;
+  document.getElementById('csvFileStat').textContent=`全${rows.length-1}行（支出: ${expenses.length}件）`;
+  hide('csvUploadArea'); show('csvDashboard');
+  populateF(); renderSum(); applyF();
+  // Update review tab member list
+  const ms=document.getElementById('rv_member');
+  const names=[...new Set(expenses.map(e=>e.r[C.対象者]).filter(Boolean))].sort();
+  ms.innerHTML='<option value="">すべて</option>';
+  names.forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;ms.appendChild(o);});
 }
 
-function populateFilters() {
-  const members = [...new Set(expenses.map(e=>e.r[C.対象者]).filter(Boolean))].sort();
-  const cats    = [...new Set(expenses.map(e=>e.r[C.項目]).filter(Boolean))].sort();
-  const ms = document.getElementById('filterMember');
-  const cs = document.getElementById('filterCategory');
-  ms.innerHTML = '<option value="">すべて</option>';
-  cs.innerHTML = '<option value="">すべて</option>';
-  members.forEach(m => { const o=document.createElement('option'); o.value=m; o.textContent=m; ms.appendChild(o); });
-  cats.forEach(c => { const o=document.createElement('option'); o.value=c; o.textContent=c; cs.appendChild(o); });
+function resetCSV(){
+  expenses=[];
+  hide('csvDashboard'); show('csvUploadArea');
+  document.getElementById('csvFileInput').value='';
 }
 
-function renderSummary() {
-  const n       = expenses.length;
-  const errs    = expenses.filter(e=>e.level==='error').length;
-  const warns   = expenses.filter(e=>e.level==='warning').length;
-  const undone  = expenses.filter(e=>e.r[C.ステータス]==='未完了').length;
-  const amount  = expenses.reduce((s,e)=>s+(parseInt(e.r[C.充当金額])||0),0);
-  document.getElementById('summaryGrid').innerHTML = `
-    <div class="scard c-blue">  <div class="scard-label">支出件数</div>   <div class="scard-value c-blue">${n.toLocaleString()}</div><div class="scard-sub">件</div></div>
-    <div class="scard c-blue">  <div class="scard-label">充当金額合計</div><div class="scard-value c-blue">${amount.toLocaleString()}</div><div class="scard-sub">円</div></div>
-    <div class="scard c-red">   <div class="scard-label">🔴 要修正</div>  <div class="scard-value c-red">${errs}</div><div class="scard-sub">件（領収書なし・計算エラー等）</div></div>
-    <div class="scard c-yellow"><div class="scard-label">🟡 要確認</div>  <div class="scard-value c-yellow">${warns}</div><div class="scard-sub">件（未完了・全額充当等）</div></div>
-    <div class="scard c-gray">  <div class="scard-label">未完了</div>      <div class="scard-value c-gray">${undone}</div><div class="scard-sub">件</div></div>
-    <div class="scard c-green"> <div class="scard-label">✅ 問題なし</div><div class="scard-value c-green">${n-errs-warns}</div><div class="scard-sub">件</div></div>
-  `;
-  document.getElementById('badge-all').textContent     = n;
-  document.getElementById('badge-error').textContent   = errs;
-  document.getElementById('badge-warning').textContent = warns;
-  document.getElementById('badge-ok').textContent      = n-errs-warns;
+function populateF(){
+  const members=[...new Set(expenses.map(e=>e.r[C.対象者]).filter(Boolean))].sort();
+  const cats=[...new Set(expenses.map(e=>e.r[C.項目]).filter(Boolean))].sort();
+  const ms=document.getElementById('f_member'); ms.innerHTML='<option value="">すべて</option>';
+  members.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;ms.appendChild(o);});
+  const cs=document.getElementById('f_cat'); cs.innerHTML='<option value="">すべて</option>';
+  cats.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;cs.appendChild(o);});
 }
 
-// ── Filtering & rendering ─────────────────────────────
-function applyFilters() {
-  const member = document.getElementById('filterMember').value;
-  const cat    = document.getElementById('filterCategory').value;
-  const level  = document.getElementById('filterLevel').value;
-  const status = document.getElementById('filterStatus').value;
-  const kw     = document.getElementById('filterSearch').value.toLowerCase();
+function renderSum(){
+  const n=expenses.length, errs=expenses.filter(e=>e.level==='error').length,
+        warns=expenses.filter(e=>e.level==='warning').length, undone=expenses.filter(e=>e.r[C.ステータス]==='未完了').length,
+        amount=expenses.reduce((s,e)=>s+(parseInt(e.r[C.充当金額])||0),0);
+  document.getElementById('sumGrid').innerHTML=`
+    <div class="scard blue"><div class="scard-label">支出件数</div><div class="scard-val blue">${n.toLocaleString()}</div><div class="scard-sub">件</div></div>
+    <div class="scard blue"><div class="scard-label">充当金額合計</div><div class="scard-val blue">${amount.toLocaleString()}</div><div class="scard-sub">円</div></div>
+    <div class="scard red"> <div class="scard-label">🔴 要修正</div><div class="scard-val red">${errs}</div><div class="scard-sub">件</div></div>
+    <div class="scard yellow"><div class="scard-label">🟡 要確認</div><div class="scard-val yellow">${warns}</div><div class="scard-sub">件</div></div>
+    <div class="scard gray"><div class="scard-label">未完了</div><div class="scard-val gray">${undone}</div><div class="scard-sub">件</div></div>
+    <div class="scard green"><div class="scard-label">✅ 問題なし</div><div class="scard-val green">${n-errs-warns}</div><div class="scard-sub">件</div></div>`;
+  document.getElementById('sb-all').textContent=n;
+  document.getElementById('sb-error').textContent=errs;
+  document.getElementById('sb-warning').textContent=warns;
+  document.getElementById('sb-ok').textContent=n-errs-warns;
+}
 
-  let filtered = expenses.filter(e => {
-    const r = e.r;
-    if (member && r[C.対象者] !== member)    return false;
-    if (cat    && r[C.項目]   !== cat)       return false;
-    if (level  && e.level     !== level)     return false;
-    if (status && r[C.ステータス] !== status)  return false;
-    if (kw && !r.join(' ').toLowerCase().includes(kw)) return false;
-    if (currentTab==='error'   && e.level!=='error')   return false;
-    if (currentTab==='warning' && e.level!=='warning') return false;
-    if (currentTab==='ok'      && e.level!=='ok')      return false;
+function applyF(){
+  const m=document.getElementById('f_member').value, cat=document.getElementById('f_cat').value,
+        lv=document.getElementById('f_level').value, st=document.getElementById('f_status').value,
+        kw=document.getElementById('f_kw').value.toLowerCase();
+  let data=expenses.filter(e=>{
+    if(m&&e.r[C.対象者]!==m) return false;
+    if(cat&&e.r[C.項目]!==cat) return false;
+    if(lv&&e.level!==lv) return false;
+    if(st&&e.r[C.ステータス]!==st) return false;
+    if(kw&&!e.r.join(' ').toLowerCase().includes(kw)) return false;
+    if(currentSTab==='error'&&e.level!=='error') return false;
+    if(currentSTab==='warning'&&e.level!=='warning') return false;
+    if(currentSTab==='ok'&&e.level!=='ok') return false;
     return true;
   });
-
-  currentPage = 1;
-  if (currentTab==='member') renderMember();
-  else renderTable(filtered);
+  currentPage=1;
+  if(currentSTab==='member') renderMember(); else renderTable(data);
 }
 
-function switchTab(tab) {
-  currentTab = tab;
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('tab-'+tab).classList.add('active');
-  applyFilters();
+function switchSTab(t){
+  currentSTab=t;
+  document.querySelectorAll('.sub-tab').forEach(e=>e.classList.remove('active'));
+  document.getElementById('stab-'+t).classList.add('active');
+  applyF();
 }
 
-function renderTable(data) {
-  const start = (currentPage-1)*PAGE;
-  const end   = start + PAGE;
-  const page  = data.slice(start, end);
-  const tc    = document.getElementById('tableContent');
+function toggleHelp(){ document.getElementById('helpBox').classList.toggle('hidden'); }
 
-  if (!data.length) { tc.innerHTML='<div class="empty">条件に一致するデータがありません</div>'; document.getElementById('pagination').innerHTML=''; return; }
-
-  let html = `<table class="dtable"><thead><tr>
+function renderTable(data){
+  const s=(currentPage-1)*PAGE, pageData=data.slice(s,s+PAGE);
+  const tc=document.getElementById('csvTable');
+  if(!data.length){ tc.innerHTML='<div class="empty">該当データなし</div>'; document.getElementById('csvPager').innerHTML=''; return; }
+  let html=`<table class="dtable"><thead><tr>
     <th>整理番号</th><th>対象者</th><th>日付</th><th>項目</th><th>細目</th>
     <th>支払先</th><th class="amt">金額</th><th class="amt">充当金額</th>
     <th>充当方法</th><th>領収書</th><th>証明書</th><th>ステータス</th><th>問題点</th>
   </tr></thead><tbody>`;
-
-  page.forEach(e => {
-    const r   = e.r;
-    const cls = e.level==='error' ? 'row-error' : e.level==='warning' ? 'row-warning' : '';
-    const amt  = parseInt(r[C.金額])||0;
-    const appl = parseInt(r[C.充当金額])||0;
-    const payee = (r[C.支払先]||'').replace(/\n/g,' ');
-    const payeeShort = payee.length>28 ? payee.substring(0,28)+'…' : payee;
-    const badges = e.issues.map(i=>`<span class="badge ${i.level==='error'?'err':'warn'}">${i.label}</span>`).join('');
-
-    html += `<tr class="${cls} clickable" onclick="showDetail(${e.idx})">
-      <td>${r[C.整理番号]||'-'}</td>
-      <td>${esc(r[C.対象者])||'-'}</td>
+  pageData.forEach(e=>{
+    const r=e.r, cls=e.level==='error'?'r-err':e.level==='warning'?'r-warn':'';
+    const pay=(r[C.支払先]||'').replace(/\n/g,' ');
+    const payS=pay.length>26?pay.substring(0,26)+'…':pay;
+    const bs=e.issues.map(i=>`<span class="badge ${i.level==='error'?'badge-err':'badge-warn'}">${i.label}</span>`).join('');
+    html+=`<tr class="${cls} clickable" onclick="showDetail(${e.idx})">
+      <td>${esc(r[C.整理番号])||'-'}</td><td>${esc(r[C.対象者])||'-'}</td>
       <td style="white-space:nowrap">${r[C.日付]||'-'}</td>
-      <td style="max-width:110px;word-break:break-all">${esc(r[C.項目])||'-'}</td>
-      <td style="max-width:110px;word-break:break-all">${esc(r[C.細目])||'-'}</td>
-      <td style="max-width:150px" title="${esc(payee)}">${esc(payeeShort)}</td>
-      <td class="amt">${amt.toLocaleString()}</td>
-      <td class="amt bold">${appl.toLocaleString()}</td>
+      <td style="max-width:100px">${esc(r[C.項目])||'-'}</td>
+      <td style="max-width:100px">${esc(r[C.細目])||'-'}</td>
+      <td style="max-width:140px" title="${esc(pay)}">${esc(payS)}</td>
+      <td class="amt">${fmt(r[C.金額])}</td>
+      <td class="amt-bold">${fmt(r[C.充当金額])}</td>
       <td>${r[C.充当方法]||'-'}${r[C.按分1]?' ('+r[C.按分1]+')':''}</td>
-      <td><span class="chip ${r[C.領収書]==='有'?'rcpt-y':'rcpt-n'}">${r[C.領収書]||'-'}</span></td>
-      <td><span class="chip ${r[C.証明書]==='有'?'rcpt-y':'rcpt-n'}">${r[C.証明書]||'-'}</span></td>
-      <td><span class="chip ${r[C.ステータス]==='完了'?'done':'undone'}">${r[C.ステータス]||'-'}</span></td>
-      <td>${badges||'<span style="color:#bbb;font-size:11px">なし</span>'}</td>
+      <td><span class="chip ${r[C.領収書]==='有'?'chip-y':'chip-n'}">${r[C.領収書]||'-'}</span></td>
+      <td><span class="chip ${r[C.証明書]==='有'?'chip-y':'chip-n'}">${r[C.証明書]||'-'}</span></td>
+      <td><span class="chip ${r[C.ステータス]==='完了'?'chip-done':'chip-undone'}">${r[C.ステータス]||'-'}</span></td>
+      <td>${bs||'<span style="color:#bbb;font-size:11px">なし</span>'}</td>
     </tr>`;
   });
-
-  html += '</tbody></table>';
-  tc.innerHTML = html;
-  renderPagination(data.length);
+  html+='</tbody></table>';
+  tc.innerHTML=html;
+  renderPager(data.length);
 }
 
-function renderPagination(total) {
-  const pages = Math.ceil(total/PAGE);
-  const pg    = document.getElementById('pagination');
-  if (pages<=1) { pg.innerHTML=`<span class="pg-info">${total}件</span>`; return; }
-  let html = `<span class="pg-info">${total}件中 ${(currentPage-1)*PAGE+1}〜${Math.min(currentPage*PAGE,total)}件表示</span>`;
-  html += `<button class="pgbtn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>◀</button>`;
-  for (let p=1;p<=pages;p++) {
-    if (p===1||p===pages||(p>=currentPage-2&&p<=currentPage+2)) {
-      html += `<button class="pgbtn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
-    } else if (p===currentPage-3||p===currentPage+3) {
-      html += '<span style="padding:0 4px">…</span>';
-    }
+function renderPager(total){
+  const pages=Math.ceil(total/PAGE), pg=document.getElementById('csvPager');
+  if(pages<=1){ pg.innerHTML=`<span class="pg-info">${total}件</span>`; return; }
+  let h=`<span class="pg-info">${total}件中 ${(currentPage-1)*PAGE+1}〜${Math.min(currentPage*PAGE,total)}件</span>`;
+  h+=`<button class="pgbtn" onclick="goP(${currentPage-1})" ${currentPage===1?'disabled':''}>◀</button>`;
+  for(let p=1;p<=pages;p++){
+    if(p===1||p===pages||(p>=currentPage-2&&p<=currentPage+2)) h+=`<button class="pgbtn ${p===currentPage?'active':''}" onclick="goP(${p})">${p}</button>`;
+    else if(p===currentPage-3||p===currentPage+3) h+='<span>…</span>';
   }
-  html += `<button class="pgbtn" onclick="goPage(${currentPage+1})" ${currentPage===pages?'disabled':''}>▶</button>`;
-  pg.innerHTML = html;
+  h+=`<button class="pgbtn" onclick="goP(${currentPage+1})" ${currentPage===pages?'disabled':''}>▶</button>`;
+  pg.innerHTML=h;
 }
 
-function goPage(p) {
-  currentPage = p;
-  applyFilters();
-  document.getElementById('tableContent').scrollIntoView({behavior:'smooth',block:'start'});
-}
+function goP(p){ currentPage=p; applyF(); document.getElementById('csvTable').scrollIntoView({behavior:'smooth',block:'start'}); }
 
-// ── Member stats ──────────────────────────────────────
-function renderMember() {
-  const map = {};
-  expenses.forEach(e => {
-    const name = e.r[C.対象者]||'不明';
-    if (!map[name]) map[name]={n:0,amt:0,err:0,warn:0,undone:0};
-    map[name].n++;
-    map[name].amt += parseInt(e.r[C.充当金額])||0;
-    if (e.level==='error')   map[name].err++;
-    if (e.level==='warning') map[name].warn++;
-    if (e.r[C.ステータス]==='未完了') map[name].undone++;
+function renderMember(){
+  const map={};
+  expenses.forEach(e=>{
+    const n=e.r[C.対象者]||'不明';
+    if(!map[n]) map[n]={n:0,amt:0,err:0,warn:0,undone:0};
+    map[n].n++; map[n].amt+=parseInt(e.r[C.充当金額])||0;
+    if(e.level==='error') map[n].err++;
+    if(e.level==='warning') map[n].warn++;
+    if(e.r[C.ステータス]==='未完了') map[n].undone++;
   });
-
-  const sorted = Object.entries(map).sort((a,b)=>b[1].amt-a[1].amt);
-  let html = `<div style="padding:16px"><h3 style="color:#1a3a5c;margin-bottom:14px">議員別集計</h3>
-  <table class="mtable"><thead><tr>
-    <th>議員名</th><th>件数</th><th class="amt">充当金額合計</th>
-    <th>要修正</th><th>要確認</th><th>未完了</th><th>総合判定</th>
-  </tr></thead><tbody>`;
-
-  sorted.forEach(([name,s]) => {
-    const judge = s.err>0 ? '🔴 要修正あり' : s.warn>0 ? '🟡 要確認あり' : '✅ 問題なし';
-    html += `<tr>
-      <td><strong>${esc(name)}</strong></td>
-      <td>${s.n}</td>
-      <td class="amt">${s.amt.toLocaleString()}円</td>
-      <td>${s.err   ? `<span class="badge err">${s.err}件</span>`    : '-'}</td>
-      <td>${s.warn  ? `<span class="badge warn">${s.warn}件</span>`  : '-'}</td>
-      <td>${s.undone? `<span class="chip undone">${s.undone}件</span>`: '-'}</td>
-      <td>${judge}</td>
-    </tr>`;
+  const sorted=Object.entries(map).sort((a,b)=>b[1].amt-a[1].amt);
+  let h=`<div style="padding:14px"><h3 style="color:#1a3a5c;margin-bottom:12px">議員別集計</h3>
+  <table class="dtable"><thead><tr><th>議員名</th><th>件数</th><th class="amt">充当金額合計</th><th>要修正</th><th>要確認</th><th>未完了</th><th>判定</th></tr></thead><tbody>`;
+  sorted.forEach(([n,s])=>{
+    const j=s.err>0?'🔴 要修正あり':s.warn>0?'🟡 要確認あり':'✅ 問題なし';
+    h+=`<tr><td><strong>${esc(n)}</strong></td><td>${s.n}</td><td class="amt">${s.amt.toLocaleString()}円</td>
+      <td>${s.err?`<span class="badge badge-err">${s.err}件</span>`:'-'}</td>
+      <td>${s.warn?`<span class="badge badge-warn">${s.warn}件</span>`:'-'}</td>
+      <td>${s.undone?`<span class="chip chip-undone">${s.undone}件</span>`:'-'}</td>
+      <td>${j}</td></tr>`;
   });
-
-  html += '</tbody></table></div>';
-  document.getElementById('tableContent').innerHTML = html;
-  document.getElementById('pagination').innerHTML = '';
+  h+='</tbody></table></div>';
+  document.getElementById('csvTable').innerHTML=h;
+  document.getElementById('csvPager').innerHTML='';
 }
 
-// ── Detail modal ──────────────────────────────────────
-function showDetail(idx) {
-  const e = expenses[idx];
-  if (!e) return;
-  const r = e.r;
-
-  document.getElementById('modalTitle').textContent =
-    `詳細 — 整理番号 ${r[C.整理番号]||r[C.申請番号]} ／ ${r[C.対象者]}`;
-
-  const amt  = parseInt(r[C.金額])||0;
-  const appl = parseInt(r[C.充当金額])||0;
-
-  let issHtml = '';
-  if (e.issues.length) {
-    issHtml = '<hr style="border:none;border-top:1px solid #eee;margin:16px 0">' +
-      '<div style="font-size:14px;font-weight:700;margin-bottom:10px">🔍 チェック結果</div>' +
-      e.issues.map(i=>`
-        <div class="issue-box ${i.level==='error'?'err':'warn'}">
-          <div class="ib-icon">${i.level==='error'?'🔴':'🟡'}</div>
-          <div><div class="ib-lbl">${i.label}</div><div class="ib-desc">${i.desc}</div></div>
-        </div>`).join('');
+function showDetail(idx){
+  const e=expenses[idx]; if(!e) return;
+  const r=e.r, reviews=getReviews(), rev=reviews[r[C.申請番号]]||{};
+  const amt=parseInt(r[C.金額])||0, appl=parseInt(r[C.充当金額])||0;
+  let iss='';
+  if(e.issues.length){
+    iss='<hr style="border:none;border-top:1px solid #eee;margin:14px 0"><div style="font-weight:700;margin-bottom:8px">🔍 チェック結果</div>'+
+      e.issues.map(i=>`<div class="issue-box ${i.level==='error'?'err':'warn'}"><span style="font-size:16px">${i.level==='error'?'🔴':'🟡'}</span><div><div class="ib-lbl">${i.label}</div><div class="ib-desc">${i.desc}</div></div></div>`).join('');
   } else {
-    issHtml = '<hr style="border:none;border-top:1px solid #eee;margin:16px 0">' +
-      '<div class="issue-box none"><div class="ib-icon">✅</div>' +
-      '<div><div class="ib-lbl">自動チェック：問題なし</div>' +
-      '<div class="ib-desc">すべての自動チェックを通過しました。</div></div></div>';
+    iss='<hr style="border:none;border-top:1px solid #eee;margin:14px 0"><div class="issue-box none"><span style="font-size:16px">✅</span><div><div class="ib-lbl">自動チェック：問題なし</div></div></div>';
   }
+  let revHtml='';
+  if(rev.status) revHtml=`<div style="margin-top:10px;padding:10px;background:#f0fdf4;border-radius:6px;font-size:13px"><strong>審査結果:</strong> ${esc(rev.status)} ${rev.notes?'／'+esc(rev.notes):''}</div>`;
 
-  document.getElementById('modalBody').innerHTML = `
+  document.getElementById('detailTitle').textContent=`詳細 — 整理番号 ${r[C.整理番号]||r[C.申請番号]} ／ ${r[C.対象者]}`;
+  document.getElementById('detailBody').innerHTML=`
     <div class="detail-grid">
-      <div class="di"><div class="di-label">申請番号</div><div class="di-value">${esc(r[C.申請番号])||'-'}</div></div>
-      <div class="di"><div class="di-label">整理番号</div><div class="di-value">${esc(r[C.整理番号])||'-'}</div></div>
-      <div class="di"><div class="di-label">対象者</div><div class="di-value">${esc(r[C.対象者])||'-'}</div></div>
-      <div class="di"><div class="di-label">ステータス</div>
-        <div class="di-value"><span class="chip ${r[C.ステータス]==='完了'?'done':'undone'}">${esc(r[C.ステータス])||'-'}</span></div></div>
-      <div class="di"><div class="di-label">日付</div><div class="di-value">${esc(r[C.日付])||'-'}</div></div>
-      <div class="di"><div class="di-label">会派</div><div class="di-value">${esc(r[C.交付対象])||'-'}</div></div>
-      <div class="di"><div class="di-label">項目</div><div class="di-value">${esc(r[C.項目])||'-'}</div></div>
-      <div class="di"><div class="di-label">細目</div><div class="di-value">${esc(r[C.細目])||'-'}</div></div>
-      <div class="di full"><div class="di-label">支払先</div>
-        <div class="di-value">${esc((r[C.支払先]||'-').replace(/\n/g,' ／ '))}</div></div>
-      <div class="di full"><div class="di-label">摘要</div><div class="di-value">${esc(r[C.摘要]||'-')}</div></div>
-      <div class="di full"><div class="di-label">備考</div><div class="di-value">${esc(r[C.備考]||'-')}</div></div>
-      <div class="di"><div class="di-label">金額</div><div class="di-value">${amt.toLocaleString()}円</div></div>
-      <div class="di"><div class="di-label">充当金額</div>
-        <div class="di-value" style="font-weight:700;color:#1a3a5c">${appl.toLocaleString()}円</div></div>
-      <div class="di"><div class="di-label">充当方法</div>
-        <div class="di-value">${esc(r[C.充当方法]||'-')}${r[C.按分1]?' ('+r[C.按分1]+')':''}</div></div>
-      <div class="di"><div class="di-label">使用者</div><div class="di-value">${esc(r[C.使用者]||'-')}</div></div>
-      <div class="di"><div class="di-label">領収書</div>
-        <div class="di-value"><span class="chip ${r[C.領収書]==='有'?'rcpt-y':'rcpt-n'}">${esc(r[C.領収書])||'-'}</span></div></div>
-      <div class="di"><div class="di-label">支払証明書に記載</div>
-        <div class="di-value"><span class="chip ${r[C.証明書]==='有'?'rcpt-y':'rcpt-n'}">${esc(r[C.証明書])||'-'}</span></div></div>
-      ${r[C.理由]?`<div class="di full"><div class="di-label">領収書なしの理由</div><div class="di-value">${esc(r[C.理由])}</div></div>`:''}
-      <div class="di"><div class="di-label">作成日時</div><div class="di-value" style="font-size:12px">${esc(r[C.作成日時])||'-'}</div></div>
-      <div class="di"><div class="di-label">更新日時</div><div class="di-value" style="font-size:12px">${esc(r[C.更新日時])||'-'}</div></div>
+      <div class="detail-field"><div class="detail-label">申請番号</div><div class="detail-value">${esc(r[C.申請番号])}</div></div>
+      <div class="detail-field"><div class="detail-label">整理番号</div><div class="detail-value">${esc(r[C.整理番号])||'-'}</div></div>
+      <div class="detail-field"><div class="detail-label">対象者</div><div class="detail-value">${esc(r[C.対象者])}</div></div>
+      <div class="detail-field"><div class="detail-label">ステータス</div><div class="detail-value"><span class="chip ${r[C.ステータス]==='完了'?'chip-done':'chip-undone'}">${r[C.ステータス]||'-'}</span></div></div>
+      <div class="detail-field"><div class="detail-label">日付</div><div class="detail-value">${r[C.日付]||'-'}</div></div>
+      <div class="detail-field"><div class="detail-label">会派</div><div class="detail-value">${esc(r[C.交付対象])}</div></div>
+      <div class="detail-field"><div class="detail-label">項目</div><div class="detail-value">${esc(r[C.項目])}</div></div>
+      <div class="detail-field"><div class="detail-label">細目</div><div class="detail-value">${esc(r[C.細目])}</div></div>
+      <div class="detail-field detail-full"><div class="detail-label">支払先</div><div class="detail-value">${esc((r[C.支払先]||'-').replace(/\n/g,' ／ '))}</div></div>
+      <div class="detail-field detail-full"><div class="detail-label">摘要</div><div class="detail-value">${esc(r[C.摘要]||'-')}</div></div>
+      <div class="detail-field detail-full"><div class="detail-label">備考</div><div class="detail-value">${esc(r[C.備考]||'-')}</div></div>
+      <div class="detail-field"><div class="detail-label">金額</div><div class="detail-value">${amt.toLocaleString()}円</div></div>
+      <div class="detail-field"><div class="detail-label">充当金額</div><div class="detail-value" style="font-weight:700;color:#1a3a5c">${appl.toLocaleString()}円</div></div>
+      <div class="detail-field"><div class="detail-label">充当方法</div><div class="detail-value">${esc(r[C.充当方法]||'-')}${r[C.按分1]?' ('+r[C.按分1]+')':''}</div></div>
+      <div class="detail-field"><div class="detail-label">使用者</div><div class="detail-value">${esc(r[C.使用者]||'-')}</div></div>
+      <div class="detail-field"><div class="detail-label">領収書</div><div class="detail-value"><span class="chip ${r[C.領収書]==='有'?'chip-y':'chip-n'}">${r[C.領収書]||'-'}</span></div></div>
+      <div class="detail-field"><div class="detail-label">証明書記載</div><div class="detail-value"><span class="chip ${r[C.証明書]==='有'?'chip-y':'chip-n'}">${r[C.証明書]||'-'}</span></div></div>
+      ${r[C.理由]?`<div class="detail-field detail-full"><div class="detail-label">領収書なしの理由</div><div class="detail-value">${esc(r[C.理由])}</div></div>`:''}
     </div>
-    ${issHtml}
-  `;
-
-  document.getElementById('detailOverlay').classList.remove('hidden');
+    ${iss}${revHtml}
+    <div style="margin-top:14px;display:flex;gap:8px">
+      <button class="btn btn-primary btn-sm" onclick="hide('detailOverlay');showTab('review');openReviewFor(${e.idx})">🔍 個別審査へ</button>
+    </div>`;
+  show('detailOverlay');
 }
 
-function overlayClick(e) { if (e.target===document.getElementById('detailOverlay')) closeModal(); }
-function closeModal()    { document.getElementById('detailOverlay').classList.add('hidden'); }
-function toggleHelp()    { document.getElementById('helpPanel').classList.toggle('hidden'); }
-
-function resetApp() {
-  expenses = []; currentTab='all'; currentPage=1;
-  document.getElementById('dashboard').classList.add('hidden');
-  document.getElementById('uploadSection').classList.remove('hidden');
-  document.getElementById('fileInput').value='';
+// ════════════════════════════════════════════════════════
+// PHASE 2: 領収書確認
+// ════════════════════════════════════════════════════════
+function initReceipt(){
+  if(document.getElementById('imgDrop').dataset.init) return;
+  document.getElementById('imgDrop').dataset.init='1';
+  const dz=document.getElementById('imgDrop'), fi=document.getElementById('imgFileInput');
+  dz.addEventListener('click',()=>fi.click());
+  fi.addEventListener('change',e=>{ [...e.target.files].forEach(addReceiptImg); fi.value=''; });
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over');});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+  dz.addEventListener('drop',e=>{ e.preventDefault();dz.classList.remove('over'); [...e.dataTransfer.files].filter(f=>f.type.startsWith('image/')).forEach(addReceiptImg); });
+  if(expenses.length) hide('receiptNoCSV'); else show('receiptNoCSV');
 }
 
-function esc(s) {
-  return String(s||'')
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function addReceiptImg(file){
+  const rd=new FileReader();
+  rd.onload=e=>{
+    receiptImgs.push({name:file.name, src:e.target.result, linked:'', aiResult:null});
+    renderReceiptGallery();
+  };
+  rd.readAsDataURL(file);
 }
+
+function renderReceiptGallery(){
+  const gal=document.getElementById('receiptGallery');
+  if(!receiptImgs.length){ gal.innerHTML=''; return; }
+  gal.innerHTML=receiptImgs.map((img,i)=>{
+    const linkBadge=img.linked
+      ?`<span class="receipt-link-badge">📎 ${esc(img.linked)}</span>`
+      :`<span class="receipt-unlink-badge">未照合</span>`;
+    const aiText=img.aiResult?`<div style="margin-top:4px;color:#6b7280">${img.aiResult.substring(0,40)}…</div>`:'';
+    return `<div class="receipt-card ${img.linked?'linked':''}" onclick="openReceiptDetail(${i})">
+      <img class="receipt-thumb" src="${img.src}" alt="${esc(img.name)}">
+      <div class="receipt-info">
+        <div style="font-weight:600;margin-bottom:3px;word-break:break-all">${esc(img.name)}</div>
+        <div>${linkBadge}</div>${aiText}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openReceiptDetail(i){
+  const img=receiptImgs[i];
+  // Show in review tab if we have expenses
+  if(expenses.length){
+    showTab('review');
+    // Open receipt in review with linking ability
+    showReceiptReviewModal(i);
+  } else {
+    // Just show lightbox
+    document.getElementById('lightboxImg').src=img.src;
+    show('imgLightbox');
+  }
+}
+
+function showReceiptReviewModal(imgIdx){
+  const img=receiptImgs[imgIdx];
+  // Build a quick modal content with link selector + AI analysis
+  const expOpts=expenses.map(e=>`<option value="${esc(e.r[C.申請番号])}" ${img.linked===e.r[C.申請番号]?'selected':''}>${e.r[C.整理番号]||e.r[C.申請番号]} — ${esc(e.r[C.対象者])} ${esc(e.r[C.日付])} ${esc(e.r[C.摘要])}</option>`).join('');
+  document.getElementById('detailTitle').textContent='領収書確認 — '+esc(img.name);
+  document.getElementById('detailBody').innerHTML=`
+    <img src="${img.src}" style="width:100%;border-radius:8px;cursor:zoom-in;max-height:320px;object-fit:contain;background:#f8f9fa;margin-bottom:12px" onclick="document.getElementById('lightboxImg').src=this.src;show('imgLightbox')">
+    <div style="margin-bottom:10px">
+      <label class="form-label">この画像を申請と照合する（任意）:</label>
+      <select class="settings-input" id="linkExpSel" style="max-width:100%"><option value="">照合しない</option>${expOpts}</select>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+      <button class="btn btn-primary btn-sm" onclick="linkReceiptToExp(${imgIdx})">📎 照合する</button>
+      <button class="btn btn-ai btn-sm" onclick="analyzeReceiptAI(${imgIdx})">🤖 AI読み取り</button>
+    </div>
+    ${img.aiResult?`<div class="ai-result"><div class="ai-result-title">🤖 AI読み取り結果</div><div class="ai-result-body">${esc(img.aiResult)}</div></div>`:''}
+    <div id="receiptAiResult"></div>`;
+  show('detailOverlay');
+}
+
+function linkReceiptToExp(imgIdx){
+  const sel=document.getElementById('linkExpSel');
+  receiptImgs[imgIdx].linked=sel.value;
+  renderReceiptGallery();
+  notify(sel.value?`申請 ${sel.value} と照合しました`:'照合を解除しました');
+}
+
+async function analyzeReceiptAI(imgIdx){
+  const img=receiptImgs[imgIdx];
+  const apiKey=getApiKey();
+  if(!apiKey){ alert('設定タブでClaude APIキーを入力してください'); return; }
+  const resEl=document.getElementById('receiptAiResult');
+  resEl.innerHTML='<div class="loader">AI分析中...</div>';
+  try{
+    const b64=img.src.split(',')[1];
+    const mediaType=img.src.startsWith('data:image/png')?'image/png':img.src.startsWith('data:image/gif')?'image/gif':'image/jpeg';
+    const result=await callClaude(
+      'あなたは領収書の読み取り専門アシスタントです。',
+      '以下の画像を分析してください。\n1. 日付\n2. 金額（税込・税別）\n3. 支払先（店名・会社名）\n4. 但し書き（品目・用途）\n5. 宛名\n6. 領収書番号（あれば）\n\n分かる範囲で抽出し、読み取れない部分は「不明」としてください。',
+      b64, mediaType
+    );
+    receiptImgs[imgIdx].aiResult=result;
+    renderReceiptGallery();
+    resEl.innerHTML=`<div class="ai-result"><div class="ai-result-title">🤖 AI読み取り結果</div><div class="ai-result-body">${esc(result)}</div></div>`;
+  } catch(e){
+    resEl.innerHTML=`<div class="warn-box">AI分析エラー: ${esc(e.message)}</div>`;
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// PHASE 3: 個別審査
+// ════════════════════════════════════════════════════════
+function initReview(){
+  if(!expenses.length){ show('reviewNoCSV'); hide('reviewMain'); return; }
+  hide('reviewNoCSV'); show('reviewMain');
+  filterReviewList();
+}
+
+let reviewFiltered=[];
+function filterReviewList(){
+  if(!expenses.length) return;
+  const member=document.getElementById('rv_member').value;
+  const lv=document.getElementById('rv_level').value;
+  const dec=document.getElementById('rv_dec').value;
+  const reviews=getReviews();
+  reviewFiltered=expenses.filter(e=>{
+    if(member&&e.r[C.対象者]!==member) return false;
+    if(lv&&e.level!==lv) return false;
+    const rev=reviews[e.r[C.申請番号]]||{};
+    if(dec==='_none'&&rev.status) return false;
+    if(dec&&dec!=='_none'&&rev.status!==dec) return false;
+    return true;
+  });
+  document.getElementById('rv_count').textContent=`${reviewFiltered.length}件`;
+  document.getElementById('rv_list_count').textContent=`${reviewFiltered.length}件`;
+  renderReviewList();
+}
+
+function renderReviewList(){
+  const reviews=getReviews();
+  const el=document.getElementById('reviewList');
+  if(!reviewFiltered.length){ el.innerHTML='<div class="empty">該当なし</div>'; return; }
+  el.innerHTML=reviewFiltered.map((e,i)=>{
+    const r=e.r, rev=reviews[r[C.申請番号]]||{};
+    const lvIcon=e.level==='error'?'🔴':e.level==='warning'?'🟡':'✅';
+    const decChip=rev.status?`<span class="chip ${rev.status==='承認'?'chip-done':rev.status==='不承認'?'chip-n':'chip-undone'}">${rev.status}</span>`:'';
+    return `<div class="review-item ${selectedRvIdx===e.idx?'selected':''}" onclick="selectReview(${e.idx})">
+      <div class="review-item-name">${lvIcon} ${esc(r[C.対象者])} ${decChip}</div>
+      <div class="review-item-sub">${r[C.整理番号]||r[C.申請番号]} ／ ${r[C.日付]} ／ ${esc(r[C.細目])} ／ ${fmt(r[C.充当金額])}円</div>
+      <div class="review-item-sub" style="margin-top:2px">${esc((r[C.支払先]||'').replace(/\n/g,' ').substring(0,30))} ${esc((r[C.摘要]||'').substring(0,20))}</div>
+    </div>`;
+  }).join('');
+}
+
+function openReviewFor(idx){ selectedRvIdx=idx; filterReviewList(); renderReviewDetail(idx); }
+
+function selectReview(idx){
+  selectedRvIdx=idx;
+  renderReviewList();
+  renderReviewDetail(idx);
+}
+
+let reviewImgData = {}; // {idx: base64}
+
+function renderReviewDetail(idx){
+  const e=expenses[idx]; if(!e) return;
+  const r=e.r, reviews=getReviews(), rev=reviews[r[C.申請番号]]||{};
+  const amt=parseInt(r[C.金額])||0, appl=parseInt(r[C.充当金額])||0;
+  const hasImg=!!reviewImgData[idx];
+  const issHtml=e.issues.length
+    ?e.issues.map(i=>`<div class="issue-box ${i.level==='error'?'err':'warn'}"><span>${i.level==='error'?'🔴':'🟡'}</span><div><div class="ib-lbl">${i.label}</div><div class="ib-desc">${i.desc}</div></div></div>`).join('')
+    :'<div class="issue-box none"><span>✅</span><div><div class="ib-lbl">自動チェック：問題なし</div></div></div>';
+  const decCls=rev.status==='承認'?'ds-approve':rev.status==='不承認'?'ds-reject':rev.status==='要確認'?'ds-check':'';
+  const linkedImgs=receiptImgs.filter(img=>img.linked===r[C.申請番号]);
+  const linkedImgHtml=linkedImgs.length?`<div style="margin-bottom:8px"><div class="text-muted" style="margin-bottom:4px">📎 照合済み領収書画像 (${linkedImgs.length}枚):</div>
+    ${linkedImgs.map(img=>`<img src="${img.src}" style="width:100%;border-radius:6px;border:1px solid #ddd;cursor:zoom-in;max-height:200px;object-fit:contain;background:#f8f9fa;margin-bottom:6px" onclick="document.getElementById('lightboxImg').src=this.src;show('imgLightbox')">`).join('')}</div>`:
+    '<div class="text-muted" style="margin-bottom:8px">（照合済み領収書なし — 「領収書確認」タブで画像をアップロード・照合してください）</div>';
+
+  document.getElementById('reviewDetail').innerHTML=`
+    <div class="card" style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <div class="section-title" style="margin-bottom:0">📝 申請詳細</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-light btn-sm" onclick="prevNext(-1)">◀ 前へ</button>
+          <button class="btn btn-light btn-sm" onclick="prevNext(1)">次へ ▶</button>
+        </div>
+      </div>
+      <div class="detail-grid">
+        <div class="detail-field"><div class="detail-label">整理番号 ／ 申請番号</div><div class="detail-value">${esc(r[C.整理番号])||'-'} ／ ${esc(r[C.申請番号])}</div></div>
+        <div class="detail-field"><div class="detail-label">対象者 ／ 会派</div><div class="detail-value">${esc(r[C.対象者])} ／ ${esc(r[C.交付対象])}</div></div>
+        <div class="detail-field"><div class="detail-label">日付</div><div class="detail-value">${r[C.日付]||'-'}</div></div>
+        <div class="detail-field"><div class="detail-label">ステータス</div><div class="detail-value"><span class="chip ${r[C.ステータス]==='完了'?'chip-done':'chip-undone'}">${r[C.ステータス]||'-'}</span></div></div>
+        <div class="detail-field"><div class="detail-label">項目</div><div class="detail-value">${esc(r[C.項目])}</div></div>
+        <div class="detail-field"><div class="detail-label">細目</div><div class="detail-value">${esc(r[C.細目])}</div></div>
+        <div class="detail-field detail-full"><div class="detail-label">支払先</div><div class="detail-value">${esc((r[C.支払先]||'-').replace(/\n/g,' ／ '))}</div></div>
+        <div class="detail-field detail-full"><div class="detail-label">摘要</div><div class="detail-value">${esc(r[C.摘要]||'-')}</div></div>
+        <div class="detail-field detail-full"><div class="detail-label">備考</div><div class="detail-value">${esc(r[C.備考]||'-')}</div></div>
+        <div class="detail-field"><div class="detail-label">金額</div><div class="detail-value">${amt.toLocaleString()}円</div></div>
+        <div class="detail-field"><div class="detail-label">充当金額</div><div class="detail-value" style="font-weight:700;color:#1a3a5c">${appl.toLocaleString()}円</div></div>
+        <div class="detail-field"><div class="detail-label">充当方法</div><div class="detail-value">${esc(r[C.充当方法]||'-')}${r[C.按分1]?' ('+r[C.按分1]+')':''}</div></div>
+        <div class="detail-field"><div class="detail-label">領収書 ／ 証明書</div><div class="detail-value">
+          <span class="chip ${r[C.領収書]==='有'?'chip-y':'chip-n'}">${r[C.領収書]||'-'}</span>
+          <span class="chip ${r[C.証明書]==='有'?'chip-y':'chip-n'}" style="margin-left:4px">${r[C.証明書]||'-'}</span>
+        </div></div>
+        ${r[C.理由]?`<div class="detail-field detail-full"><div class="detail-label">領収書なしの理由</div><div class="detail-value">${esc(r[C.理由])}</div></div>`:''}
+      </div>
+      <hr class="divider">
+      <div style="margin-bottom:8px"><strong style="font-size:13px">🔍 自動チェック</strong></div>
+      ${issHtml}
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div class="section-title">🧾 領収書・証明画像</div>
+      ${linkedImgHtml}
+      <div>
+        <label class="drop-zone" for="rv_img_${idx}" style="padding:12px;display:block">
+          <input type="file" id="rv_img_${idx}" accept="image/*" onchange="loadRvImg(${idx},this)">
+          <span style="font-size:13px;color:#666">＋ このPC内の領収書画像を直接開く</span>
+        </label>
+        ${hasImg?`<img src="${reviewImgData[idx]}" style="width:100%;border-radius:6px;border:1px solid #ddd;cursor:zoom-in;max-height:280px;object-fit:contain;background:#f8f9fa;margin-top:8px" onclick="document.getElementById('lightboxImg').src=this.src;show('imgLightbox')">`:'' }
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div class="section-title">🤖 AI審査</div>
+      ${getApiKey()?
+        `<button class="btn btn-ai" onclick="runAIReview(${idx})">AI審査を実行する</button>
+         <div class="text-muted" style="margin-top:6px">知識ベースの条例・規則・判例を参照して審査します</div>`:
+        `<div class="warn-box">AI審査には「設定」タブでClaude APIキーの入力が必要です</div>`}
+      <div id="ai_result_${idx}" style="margin-top:10px">${rev.aiResult?`<div class="ai-result"><div class="ai-result-title">🤖 AI審査結果（前回）</div><div class="ai-result-body">${esc(rev.aiResult)}</div></div>`:''}  </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">✍️ 担当者の審査結果</div>
+      <div class="decision-status" style="margin-bottom:10px">
+        <button class="ds-btn ds-approve ${decCls==='ds-approve'?'active':''}" onclick="setDecision(${idx},'承認')">✅ 承認</button>
+        <button class="ds-btn ds-check ${decCls==='ds-check'?'active':''}" onclick="setDecision(${idx},'要確認')">🟡 要確認</button>
+        <button class="ds-btn ds-reject ${decCls==='ds-reject'?'active':''}" onclick="setDecision(${idx},'不承認')">🔴 不承認</button>
+      </div>
+      <textarea class="decision-note" id="dn_${idx}" placeholder="審査メモ（問題点・確認内容・指摘事項など）">${esc(rev.notes||'')}</textarea>
+      <div style="margin-top:8px;display:flex;gap:8px">
+        <button class="btn btn-primary btn-sm" onclick="saveDecision(${idx})">💾 メモを保存</button>
+        ${rev.updatedAt?`<span class="text-muted">最終更新: ${rev.updatedAt}</span>`:''}
+      </div>
+    </div>`;
+}
+
+function loadRvImg(idx, input){
+  const f=input.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=e=>{ reviewImgData[idx]=e.target.result; renderReviewDetail(idx); };
+  rd.readAsDataURL(f);
+}
+
+function prevNext(dir){
+  const curI=reviewFiltered.findIndex(e=>e.idx===selectedRvIdx);
+  if(curI<0) return;
+  const nextI=curI+dir;
+  if(nextI<0||nextI>=reviewFiltered.length) return;
+  selectReview(reviewFiltered[nextI].idx);
+  document.getElementById('reviewDetail').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function setDecision(idx, status){
+  const reviews=getReviews();
+  const e=expenses[idx]; if(!e) return;
+  const notes=document.getElementById('dn_'+idx)?.value||'';
+  reviews[e.r[C.申請番号]]={...reviews[e.r[C.申請番号]]||{}, status, notes, updatedAt:new Date().toLocaleString('ja-JP')};
+  store(SK.reviews, reviews);
+  notify(`${e.r[C.対象者]} — ${status} として記録しました`);
+  renderReviewList();
+  renderReviewDetail(idx);
+}
+
+function saveDecision(idx){
+  const reviews=getReviews();
+  const e=expenses[idx]; if(!e) return;
+  const notes=document.getElementById('dn_'+idx)?.value||'';
+  reviews[e.r[C.申請番号]]={...reviews[e.r[C.申請番号]]||{}, notes, updatedAt:new Date().toLocaleString('ja-JP')};
+  store(SK.reviews, reviews);
+  notify('メモを保存しました');
+}
+
+async function runAIReview(idx){
+  const e=expenses[idx]; if(!e) return;
+  const apiKey=getApiKey();
+  if(!apiKey){ alert('設定タブでAPIキーを入力してください'); return; }
+  const el=document.getElementById('ai_result_'+idx);
+  el.innerHTML='<div class="loader">AI審査中... (条例・規則・判例を参照しています)</div>';
+  const r=e.r;
+  const b64=reviewImgData[idx]?reviewImgData[idx].split(',')[1]:null;
+  const mediaType=reviewImgData[idx]?(reviewImgData[idx].startsWith('data:image/png')?'image/png':'image/jpeg'):null;
+  const userMsg=`以下の政務活動費申請を審査してください。
+
+【申請情報】
+整理番号: ${r[C.整理番号]||r[C.申請番号]}
+対象者: ${r[C.対象者]}（会派: ${r[C.交付対象]}）
+日付: ${r[C.日付]}
+項目: ${r[C.項目]}
+細目: ${r[C.細目]}
+支払先: ${(r[C.支払先]||'').replace(/\n/g,' ')}
+金額: ${fmt(r[C.金額])}円
+充当金額: ${fmt(r[C.充当金額])}円
+充当方法: ${r[C.充当方法]||'未設定'}${r[C.按分1]?' ('+r[C.按分1]+')':''}
+摘要: ${r[C.摘要]||'なし'}
+備考: ${r[C.備考]||'なし'}
+領収書: ${r[C.領収書]||'不明'} ／ 支払証明書への記載: ${r[C.証明書]||'不明'}
+${r[C.理由]?'領収書なしの理由: '+r[C.理由]:''}
+ステータス: ${r[C.ステータス]}
+
+${b64?'※ 領収書画像を添付します。画像も参照して審査してください。':''}
+
+【審査してほしい点】
+1. この支出は政務活動費の対象として適切か
+2. 充当方法（全額充当 or 按分）は適切か
+3. 書類（領収書・支払証明書）の状況は問題ないか
+4. 摘要・使途の説明として十分か
+5. 問題がある場合、根拠条文・判例を明示してください
+
+最後に「承認可」「要確認（理由付き）」「不承認（理由付き）」で判定してください。`;
+  try{
+    const result=await callClaude(buildSystemPrompt(), userMsg, b64, mediaType);
+    const verdict=result.includes('承認可')?'ok':result.includes('不承認')?'ng':'warn';
+    const verdictText=result.includes('承認可')?'✅ 承認可':result.includes('不承認')?'🔴 不承認':'🟡 要確認';
+    el.innerHTML=`<div class="ai-result"><div class="ai-result-title">🤖 AI審査結果</div><div class="ai-result-body">${esc(result)}</div><div class="ai-verdict ${verdict}">${verdictText}</div></div>`;
+    const reviews=getReviews();
+    reviews[r[C.申請番号]]={...reviews[r[C.申請番号]]||{}, aiResult:result, aiAt:new Date().toLocaleString('ja-JP')};
+    store(SK.reviews, reviews);
+  }catch(err){
+    el.innerHTML=`<div class="warn-box">AI審査エラー: ${esc(err.message)}</div>`;
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// KNOWLEDGE BASE
+// ════════════════════════════════════════════════════════
+function initKB(){
+  const kb=getKB();
+  document.getElementById('kb_jorei').value=kb.jorei||'';
+  document.getElementById('kb_kisoku').value=kb.kisoku||'';
+  document.getElementById('kb_manual').value=kb.manual||'';
+  updateKBStatus();
+  renderJudgments();
+}
+
+function saveKB(){
+  const kb={jorei:document.getElementById('kb_jorei').value, kisoku:document.getElementById('kb_kisoku').value, manual:document.getElementById('kb_manual').value};
+  store(SK.kb, kb);
+  const s=document.getElementById('kb_saved'); s.style.display='inline'; setTimeout(()=>s.style.display='none',2000);
+  updateKBStatus();
+  notify('知識ベースを保存しました');
+}
+
+function updateKBStatus(){
+  const kb=getKB(), js=getJudgments();
+  const parts=[];
+  if(kb.jorei) parts.push(`条例: ${kb.jorei.length.toLocaleString()}文字`);
+  if(kb.kisoku) parts.push(`施行規則: ${kb.kisoku.length.toLocaleString()}文字`);
+  if(kb.manual) parts.push(`マニュアル: ${kb.manual.length.toLocaleString()}文字`);
+  if(js.length) parts.push(`判例: ${js.length}件`);
+  document.getElementById('kb_status').textContent=parts.length?'現在の登録内容: '+parts.join(' ／ '):'（未登録）';
+}
+
+function renderJudgments(){
+  const js=getJudgments();
+  const el=document.getElementById('judgmentList');
+  if(!js.length){ el.innerHTML='<div class="empty" style="padding:20px">判例が登録されていません</div>'; return; }
+  el.innerHTML=js.map((j,i)=>`
+    <div class="judgment-item">
+      <div class="judgment-title">⚖️ ${esc(j.title)}</div>
+      <div class="judgment-meta">${esc(j.court||'')}${j.date?' ／ '+esc(j.date):''} — <span style="color:#6b7280">登録日: ${j.addedAt||'-'}</span></div>
+      <div class="judgment-text"><strong>概要:</strong> ${esc(j.summary)}</div>
+      ${j.points?`<div class="judgment-text" style="margin-top:4px"><strong>適用ポイント:</strong> ${esc(j.points)}</div>`:''}
+      <button class="btn btn-danger btn-sm judgment-del" onclick="deleteJudgment(${i})">削除</button>
+    </div>`).join('');
+}
+
+function toggleAddJudgment(){
+  const f=document.getElementById('addJudgmentForm');
+  f.classList.toggle('hidden');
+  if(!f.classList.contains('hidden')){ document.getElementById('jTitle').focus(); }
+}
+
+function addJudgment(){
+  const title=document.getElementById('jTitle').value.trim();
+  if(!title){ alert('タイトルを入力してください'); return; }
+  const js=getJudgments();
+  js.push({ title, court:document.getElementById('jCourt').value.trim(), date:document.getElementById('jDate').value.trim(),
+             summary:document.getElementById('jSummary').value.trim(), points:document.getElementById('jPoints').value.trim(),
+             addedAt:new Date().toLocaleDateString('ja-JP') });
+  store(SK.judgments, js);
+  ['jTitle','jCourt','jDate','jSummary','jPoints'].forEach(id=>document.getElementById(id).value='');
+  toggleAddJudgment();
+  renderJudgments(); updateKBStatus();
+  notify('判例を追加しました');
+}
+
+function deleteJudgment(i){
+  if(!confirm('この判例を削除しますか？')) return;
+  const js=getJudgments(); js.splice(i,1); store(SK.judgments, js);
+  renderJudgments(); updateKBStatus();
+}
+
+// ════════════════════════════════════════════════════════
+// SETTINGS
+// ════════════════════════════════════════════════════════
+function initSettings(){
+  document.getElementById('set_apikey').value=getApiKey();
+  document.getElementById('set_model').value=getModel();
+}
+
+function saveSettings(){
+  localStorage.setItem(SK.apikey, document.getElementById('set_apikey').value.trim());
+  localStorage.setItem(SK.model, document.getElementById('set_model').value);
+  const s=document.getElementById('set_saved'); s.style.display='inline'; setTimeout(()=>s.style.display='none',2000);
+  notify('設定を保存しました');
+}
+
+function clearReviews(){
+  if(!confirm('審査結果をすべてリセットしますか？')) return;
+  localStorage.removeItem(SK.reviews);
+  notify('審査結果をリセットしました');
+}
+
+// ════════════════════════════════════════════════════════
+// CLAUDE API
+// ════════════════════════════════════════════════════════
+function buildSystemPrompt(){
+  const kb=getKB(), js=getJudgments();
+  let p='あなたは横須賀市議会の政務活動費審査を支援するAIアシスタントです。政務活動費の適正な使用を確認し、公正な審査を行います。';
+  if(kb.jorei)   p+=`\n\n【横須賀市政務活動費条例】\n${kb.jorei}`;
+  if(kb.kisoku)  p+=`\n\n【施行規則】\n${kb.kisoku}`;
+  if(kb.manual)  p+=`\n\n【運用マニュアル】\n${kb.manual}`;
+  if(!kb.jorei&&!kb.kisoku&&!kb.manual) p+='\n\n※ 知識ベースに条例・規則・マニュアルが未登録です。一般的な政務活動費の運用基準に基づいて審査します。';
+  if(js.length){
+    p+='\n\n【参考判例】';
+    js.forEach(j=>{ p+=`\n\n▼ ${j.title}${j.court?' ('+j.court+')':''}${j.date?' '+j.date:''}\n概要: ${j.summary}${j.points?'\n適用ポイント: '+j.points:''}`; });
+  }
+  return p;
+}
+
+async function callClaude(systemPrompt, userMsg, b64=null, mediaType='image/jpeg'){
+  const apiKey=getApiKey(), model=getModel();
+  if(!apiKey) throw new Error('APIキーが設定されていません');
+  const content=[];
+  if(b64){ content.push({type:'image',source:{type:'base64',media_type:mediaType,data:b64}}); }
+  content.push({type:'text',text:userMsg});
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model, max_tokens:2048, system:systemPrompt, messages:[{role:'user',content}]})
+  });
+  if(!res.ok){ const err=await res.json(); throw new Error(err.error?.message||`HTTP ${res.status}`); }
+  const data=await res.json();
+  return data.content[0].text;
+}
+
+// ── Keyboard shortcuts ────────────────────────────────
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){ ['detailOverlay','imgLightbox'].forEach(id=>{ const el=document.getElementById(id); if(el&&!el.classList.contains('hidden')) el.classList.add('hidden'); }); }
+  if(e.key==='ArrowLeft'&&selectedRvIdx>=0&&document.getElementById('tab-review').classList.contains('active')) prevNext(-1);
+  if(e.key==='ArrowRight'&&selectedRvIdx>=0&&document.getElementById('tab-review').classList.contains('active')) prevNext(1);
+});
 </script>
 </body>
 </html>
