@@ -1,211 +1,465 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>セイムカツドヒチェッカー</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #f5f5f5;
-      color: #333;
-      padding: 24px;
-    }
-    h1 { font-size: 1.5rem; margin-bottom: 24px; }
-    .card {
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 1px 4px rgba(0,0,0,.1);
-      padding: 20px;
-      margin-bottom: 16px;
-    }
-    label { display: block; font-weight: 600; margin-bottom: 6px; }
-    textarea, input[type="text"], input[type="password"] {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 0.95rem;
-      resize: vertical;
-    }
-    textarea { min-height: 100px; }
-    .row { display: flex; gap: 12px; }
-    .row > * { flex: 1; }
-    button {
-      margin-top: 16px;
-      padding: 10px 24px;
-      background: #4f46e5;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      font-size: 0.95rem;
-      cursor: pointer;
-    }
-    button:disabled { background: #a5a5a5; cursor: not-allowed; }
-    #result {
-      margin-top: 16px;
-      padding: 14px;
-      border-radius: 6px;
-      white-space: pre-wrap;
-      font-size: 0.9rem;
-      line-height: 1.6;
-    }
-    .result-same    { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; }
-    .result-diff    { background: #f0fdf4; border: 1px solid #86efac; color: #166534; }
-    .result-error   { background: #fff7ed; border: 1px solid #fdba74; color: #9a3412; }
-    .result-loading { background: #eff6ff; border: 1px solid #93c5fd; color: #1e40af; }
-    .badge {
-      display: inline-block;
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 9999px;
-      margin-bottom: 8px;
-    }
-    .badge-same { background: #fca5a5; color: #7f1d1d; }
-    .badge-diff { background: #86efac; color: #14532d; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>政務活動費 審査システム | 横須賀市議会</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans",sans-serif;background:#f0f2f5;color:#1a2433;min-height:100vh}
+.header{background:linear-gradient(135deg,#1a3a5c,#2d5f8a);color:#fff;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.header-title{font-size:17px;font-weight:700}
+.header-sub{font-size:11px;opacity:.7;margin-top:2px}
+.header-btns{display:flex;gap:8px}
+.hbtn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;transition:.2s}
+.hbtn:hover{background:rgba(255,255,255,.25)}
+.wrap{max-width:960px;margin:0 auto;padding:24px 16px}
+.card{background:#fff;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.08);padding:20px;margin-bottom:16px}
+.card-title{font-size:15px;font-weight:700;color:#1a3a5c;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.drop-zone{border:2px dashed #b0c4d8;border-radius:8px;padding:28px;text-align:center;cursor:pointer;transition:.2s;background:#f8fafc}
+.drop-zone:hover,.drop-zone.over{border-color:#2d5f8a;background:#eff6ff}
+.drop-zone input{display:none}
+.drop-icon{font-size:36px;margin-bottom:8px}
+.drop-text{font-size:14px;color:#555}
+.drop-hint{font-size:11px;color:#aaa;margin-top:4px}
+.gallery{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.thumb{position:relative;border-radius:6px;overflow:hidden;border:2px solid #e2e8f0;cursor:pointer;transition:.2s}
+.thumb:hover{border-color:#2d5f8a}
+.thumb img{width:100px;height:80px;object-fit:cover;display:block}
+.thumb-del{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+.thumb-label{font-size:10px;text-align:center;padding:2px 4px;background:#f8fafc;color:#555;max-width:100px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.csv-loaded{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;margin-top:10px}
+.csv-loaded span{flex:1;font-size:13px;color:#166534}
+.csv-reset{background:none;border:1px solid #86efac;color:#166534;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:12px;margin-top:0}
+.audit-btn{width:100%;padding:16px;background:linear-gradient(135deg,#1a3a5c,#2d5f8a);color:#fff;border:none;border-radius:10px;font-size:18px;font-weight:700;cursor:pointer;letter-spacing:.05em;transition:.2s;margin-bottom:16px}
+.audit-btn:hover{opacity:.9;transform:translateY(-1px)}
+.audit-btn:disabled{background:#9ca3af;cursor:not-allowed;transform:none}
+.result-area{display:none}
+.result-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.verdict{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-weight:700;font-size:14px}
+.verdict.ok   {background:#dcfce7;color:#166534}
+.verdict.warn {background:#fef9c3;color:#854d0e}
+.verdict.ng   {background:#fee2e2;color:#991b1b}
+.section-result{margin-bottom:18px}
+.section-result h3{font-size:14px;font-weight:700;color:#1a3a5c;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid #e2e8f0}
+.result-body{font-size:13px;line-height:1.8;white-space:pre-wrap;color:#333}
+.comment-box{background:#fffbeb;border-left:4px solid #f59e0b;padding:10px 14px;border-radius:0 6px 6px 0;margin:8px 0;font-size:13px}
+.comment-box.err{background:#fff1f2;border-color:#f43f5e}
+.comment-box.info{background:#eff6ff;border-color:#3b82f6}
+.loader-wrap{text-align:center;padding:32px}
+.spinner{width:36px;height:36px;border:3px solid #e2e8f0;border-top-color:#2d5f8a;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader-text{font-size:14px;color:#6b7280}
+/* Modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
+.hidden{display:none!important}
+.modal{background:#fff;border-radius:12px;padding:24px;max-width:680px;width:100%;max-height:90vh;overflow-y:auto;position:relative}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:16px;color:#1a3a5c}
+.modal-close{position:absolute;top:12px;right:12px;background:#f3f4f6;border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:15px}
+.form-label{display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:#374151}
+.form-input,.kb-ta{width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;margin-bottom:12px}
+.kb-ta{min-height:120px;resize:vertical;font-size:12px}
+.form-select{width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;margin-bottom:12px}
+.save-btn{padding:8px 20px;background:#1a3a5c;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px}
+.saved-msg{font-size:12px;color:#22c55e;margin-left:8px}
+.notif{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:#1a3a5c;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;transition:.3s;opacity:0;pointer-events:none;z-index:200}
+.notif.show{transform:translateX(-50%) translateY(0);opacity:1}
+</style>
 </head>
 <body>
-  <h1>セイムカツドヒチェッカー</h1>
 
+<header class="header">
+  <div>
+    <div class="header-title">政務活動費 審査システム</div>
+    <div class="header-sub">横須賀市議会 ／ セムカン連携対応</div>
+  </div>
+  <div class="header-btns">
+    <button class="hbtn" onclick="openModal('kbModal')">📚 知識ベース</button>
+    <button class="hbtn" onclick="openModal('settingsModal')">⚙️ 設定</button>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- Step 1: Images -->
   <div class="card">
-    <label for="apiKey">Anthropic API キー</label>
-    <input type="password" id="apiKey" placeholder="sk-ant-..." autocomplete="off">
+    <div class="card-title">🖼 ① セムカン申請画面・領収書をアップロード</div>
+    <div class="drop-zone" id="imgDrop">
+      <div class="drop-icon">📎</div>
+      <div class="drop-text"><strong>画像をここにドロップ</strong>　またはクリックして選択</div>
+      <div class="drop-hint">複数可 ／ PNG・JPG・GIF 対応</div>
+      <input type="file" id="imgInput" accept="image/*" multiple>
+    </div>
+    <div class="gallery" id="gallery"></div>
   </div>
 
+  <!-- Step 2: CSV -->
   <div class="card">
-    <div class="row">
-      <div>
-        <label for="activity1">カツドヒ 1</label>
-        <textarea id="activity1" placeholder="例: 朝のジョギング 30分"></textarea>
-      </div>
-      <div>
-        <label for="activity2">カツドヒ 2</label>
-        <textarea id="activity2" placeholder="例: ランニング 3km"></textarea>
+    <div class="card-title">📊 ② 収支明細CSV（任意・一覧チェック用）</div>
+    <div class="drop-zone" id="csvDrop">
+      <div class="drop-icon">📂</div>
+      <div class="drop-text"><strong>CSVをここにドロップ</strong>　またはクリックして選択</div>
+      <div class="drop-hint">セムカンからエクスポートしたCSVファイル</div>
+      <input type="file" id="csvInput" accept=".csv">
+    </div>
+    <div id="csvLoaded" class="hidden">
+      <div class="csv-loaded">
+        <span>📋 <strong id="csvName"></strong>　<span id="csvStat" style="opacity:.7"></span></span>
+        <button class="csv-reset" onclick="resetCSV()">✕ 削除</button>
       </div>
     </div>
-    <label for="context" style="margin-top:12px;">追加コンテキスト（任意）</label>
-    <input type="text" id="context" placeholder="判定の参考にする情報があれば入力">
-    <button id="checkBtn" onclick="checkActivities()">チェックする</button>
   </div>
 
-  <div id="result" style="display:none;"></div>
+  <!-- Audit button -->
+  <button class="audit-btn" id="auditBtn" onclick="runAudit()">🔍 審査する</button>
 
-  <script>
-    function filterEmptyTextBlocks(messages) {
-      return messages
-        .map(msg => {
-          if (!Array.isArray(msg.content)) return msg;
-          const filtered = msg.content.filter(
-            block => !(block.type === 'text' && block.text.trim() === '')
-          );
-          return { ...msg, content: filtered };
-        })
-        .filter(msg => {
-          if (Array.isArray(msg.content)) return msg.content.length > 0;
-          if (typeof msg.content === 'string') return msg.content.trim() !== '';
-          return true;
-        });
+  <!-- Result -->
+  <div class="result-area" id="resultArea"></div>
+
+</div>
+
+<!-- Knowledge Base Modal -->
+<div class="overlay hidden" id="kbModal" onclick="overlayClose(event,'kbModal')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('kbModal')">✕</button>
+    <div class="modal-title">📚 知識ベース</div>
+    <label class="form-label">横須賀市政務活動費条例</label>
+    <textarea class="kb-ta" id="kb_jorei" placeholder="条例の本文を貼り付けてください..."></textarea>
+    <label class="form-label">施行規則</label>
+    <textarea class="kb-ta" id="kb_kisoku" placeholder="施行規則の本文を貼り付けてください..."></textarea>
+    <label class="form-label">運用マニュアル</label>
+    <textarea class="kb-ta" id="kb_manual" placeholder="運用マニュアルを貼り付けてください..." style="min-height:160px"></textarea>
+    <label class="form-label">参考判例（任意）</label>
+    <textarea class="kb-ta" id="kb_hanrei" placeholder="関連する判例・裁判例の概要を貼り付けてください..."></textarea>
+    <button class="save-btn" onclick="saveKB()">💾 保存</button>
+    <span class="saved-msg hidden" id="kbSaved">✓ 保存しました</span>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="overlay hidden" id="settingsModal" onclick="overlayClose(event,'settingsModal')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('settingsModal')">✕</button>
+    <div class="modal-title">⚙️ 設定</div>
+    <label class="form-label">Claude API キー</label>
+    <input type="password" class="form-input" id="set_apikey" placeholder="sk-ant-api03-...">
+    <label class="form-label">モデル</label>
+    <select class="form-select" id="set_model">
+      <option value="claude-sonnet-4-6">claude-sonnet-4-6（推奨・高精度）</option>
+      <option value="claude-haiku-4-5-20251001">claude-haiku-4-5（高速・低コスト）</option>
+    </select>
+    <button class="save-btn" onclick="saveSettings()">💾 保存</button>
+    <span class="saved-msg hidden" id="setSaved">✓ 保存しました</span>
+  </div>
+</div>
+
+<!-- Notification -->
+<div class="notif" id="notif"></div>
+
+<script>
+'use strict';
+
+// ── Storage ───────────────────────────────────────────────────
+const SK = { kb:'seimu_kb2', apikey:'seimu_apikey', model:'seimu_model' };
+const load  = k => { try{ return JSON.parse(localStorage.getItem(k)||'null'); }catch{ return null; } };
+const store = (k,v) => localStorage.setItem(k, JSON.stringify(v));
+const getKB     = () => load(SK.kb) || {jorei:'',kisoku:'',manual:'',hanrei:''};
+const getApiKey = () => localStorage.getItem(SK.apikey) || '';
+const getModel  = () => localStorage.getItem(SK.model) || 'claude-sonnet-4-6';
+
+// ── App state ─────────────────────────────────────────────────
+let images  = [];   // [{name, dataUrl}]
+let csvData = null; // {name, rows, summary}
+
+// ── Utilities ─────────────────────────────────────────────────
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const notify = msg => {
+  const el=document.getElementById('notif');
+  el.textContent=msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),3000);
+};
+const openModal  = id => { initModal(id); document.getElementById(id).classList.remove('hidden'); };
+const closeModal = id => document.getElementById(id).classList.add('hidden');
+const overlayClose = (e,id) => { if(e.target===document.getElementById(id)) closeModal(id); };
+
+function initModal(id){
+  if(id==='kbModal'){
+    const kb=getKB();
+    document.getElementById('kb_jorei').value=kb.jorei||'';
+    document.getElementById('kb_kisoku').value=kb.kisoku||'';
+    document.getElementById('kb_manual').value=kb.manual||'';
+    document.getElementById('kb_hanrei').value=kb.hanrei||'';
+  }
+  if(id==='settingsModal'){
+    document.getElementById('set_apikey').value=getApiKey();
+    document.getElementById('set_model').value=getModel();
+  }
+}
+function saveKB(){
+  store(SK.kb,{jorei:document.getElementById('kb_jorei').value, kisoku:document.getElementById('kb_kisoku').value, manual:document.getElementById('kb_manual').value, hanrei:document.getElementById('kb_hanrei').value});
+  flashSaved('kbSaved'); notify('知識ベースを保存しました');
+}
+function saveSettings(){
+  localStorage.setItem(SK.apikey, document.getElementById('set_apikey').value.trim());
+  localStorage.setItem(SK.model,  document.getElementById('set_model').value);
+  flashSaved('setSaved'); notify('設定を保存しました');
+}
+function flashSaved(id){ const el=document.getElementById(id); el.classList.remove('hidden'); setTimeout(()=>el.classList.add('hidden'),2500); }
+
+// ── Image upload ──────────────────────────────────────────────
+(function(){
+  const dz=document.getElementById('imgDrop'), fi=document.getElementById('imgInput');
+  dz.addEventListener('click',()=>fi.click());
+  fi.addEventListener('change',e=>{ [...e.target.files].forEach(addImage); fi.value=''; });
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over')});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+  dz.addEventListener('drop',e=>{
+    e.preventDefault();dz.classList.remove('over');
+    [...e.dataTransfer.files].filter(f=>f.type.startsWith('image/')).forEach(addImage);
+  });
+})();
+
+function addImage(file){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    images.push({name:file.name, dataUrl:e.target.result});
+    renderGallery();
+  };
+  reader.readAsDataURL(file);
+}
+function removeImage(i){ images.splice(i,1); renderGallery(); }
+function renderGallery(){
+  const g=document.getElementById('gallery');
+  g.innerHTML=images.map((img,i)=>`
+    <div class="thumb" onclick="lightbox('${img.dataUrl}')">
+      <img src="${img.dataUrl}" alt="${esc(img.name)}">
+      <button class="thumb-del" onclick="event.stopPropagation();removeImage(${i})">✕</button>
+      <div class="thumb-label">${esc(img.name)}</div>
+    </div>`).join('');
+}
+function lightbox(src){
+  const w=window.open('','_blank','width=900,height=700');
+  w.document.write(`<body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${src}" style="max-width:100%;max-height:100vh"></body>`);
+}
+
+// ── CSV upload ────────────────────────────────────────────────
+const C={申請番号:0,交付対象:1,対象者:3,タイプ:4,整理番号:5,ステータス:6,項目:7,細目:8,日付:9,金額:10,充当金額:12,充当方法:13,按分1:14,支払先:16,摘要:17,備考:18,領収書:20,証明書:21};
+
+(function(){
+  const dz=document.getElementById('csvDrop'), fi=document.getElementById('csvInput');
+  dz.addEventListener('click',()=>fi.click());
+  fi.addEventListener('change',e=>{ if(e.target.files[0]) loadCSV(e.target.files[0]); fi.value=''; });
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over')});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+  dz.addEventListener('drop',e=>{
+    e.preventDefault();dz.classList.remove('over');
+    const f=e.dataTransfer.files[0];
+    if(f&&f.name.toLowerCase().endsWith('.csv')) loadCSV(f);
+  });
+})();
+
+function loadCSV(file){
+  const rd=new FileReader();
+  rd.onload=e=>{ let t=e.target.result; if(t.includes('?'+'?')||t.includes('???')){ const r2=new FileReader(); r2.onload=e2=>processCSV(e2.target.result,file.name); r2.readAsText(file,'Shift-JIS'); } else processCSV(t,file.name); };
+  rd.readAsText(file,'UTF-8');
+}
+function parseCSV(text){
+  text=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  const rows=[]; let i=0;
+  while(i<text.length){
+    const row=[]; let first=true;
+    while(i<text.length){
+      if(!first){ if(text[i]===',') i++; else break; }
+      first=false;
+      let f='';
+      if(i<text.length&&text[i]==='"'){ i++; while(i<text.length){ if(text[i]==='"'){ if(text[i+1]==='"'){f+='"';i+=2;}else{i++;break;} }else{f+=text[i];i++;} } }
+      else{ while(i<text.length&&text[i]!==','&&text[i]!=='\n'){f+=text[i];i++;} }
+      row.push(f.trim());
     }
+    if(i<text.length&&text[i]==='\n') i++;
+    if(row.length>1||(row.length===1&&row[0]!=='')) rows.push(row);
+  }
+  return rows;
+}
+function processCSV(text, name){
+  const rows=parseCSV(text);
+  const expenses=rows.slice(1).filter(r=>r[C.タイプ]==='支出');
+  const members=[...new Set(expenses.map(r=>r[C.対象者]).filter(Boolean))];
+  const total=expenses.reduce((s,r)=>s+(parseInt(r[C.充当金額])||0),0);
+  const summary=buildCSVSummary(expenses, members);
+  csvData={name, rows:expenses, summary, count:expenses.length, total, members};
+  document.getElementById('csvName').textContent=name;
+  document.getElementById('csvStat').textContent=`支出 ${expenses.length}件 ／ 充当合計 ${total.toLocaleString()}円`;
+  document.getElementById('csvLoaded').classList.remove('hidden');
+  notify('CSVを読み込みました');
+}
+function buildCSVSummary(expenses, members){
+  let s='【収支明細CSV サマリー】\n';
+  s+=`総支出件数: ${expenses.length}件\n\n`;
+  members.forEach(m=>{
+    const rows=expenses.filter(r=>r[C.対象者]===m);
+    s+=`▼ ${m}（${rows.length}件）\n`;
+    const cats=[...new Set(rows.map(r=>r[C.項目]).filter(Boolean))];
+    cats.forEach(cat=>{
+      const cr=rows.filter(r=>r[C.項目]===cat);
+      s+=`  [${cat}]\n`;
+      const payees=[...new Set(cr.map(r=>r[C.支払先]).filter(Boolean))];
+      const methods=[...new Set(cr.map(r=>r[C.充当方法]).filter(Boolean))];
+      const buntans=[...new Set(cr.map(r=>r[C.按分1]).filter(Boolean))];
+      s+=`    件数:${cr.length} 支払先:${payees.slice(0,5).join('/')} 充当方法:${methods.join('/')}${buntans.length?' 按分:'+buntans.join('/'):''}`;
+      const dups=findDups(cr);
+      if(dups.length) s+=`\n    ⚠️ 重複の可能性: ${dups.join(', ')}`;
+      s+='\n';
+    });
+  });
+  return s;
+}
+function findDups(rows){
+  const seen={}, dups=[];
+  rows.forEach(r=>{
+    const key=`${r[C.日付]}_${r[C.支払先]}_${r[C.金額]}`;
+    if(seen[key]) dups.push(`${r[C.日付]}/${r[C.支払先]}/${(parseInt(r[C.金額])||0).toLocaleString()}円`);
+    seen[key]=true;
+  });
+  return [...new Set(dups)];
+}
+function resetCSV(){
+  csvData=null;
+  document.getElementById('csvLoaded').classList.add('hidden');
+  document.getElementById('csvInput').value='';
+}
 
-    async function checkActivities() {
-      const apiKey = document.getElementById('apiKey').value.trim();
-      const activity1 = document.getElementById('activity1').value.trim();
-      const activity2 = document.getElementById('activity2').value.trim();
-      const context  = document.getElementById('context').value.trim();
+// ── Filter empty text blocks ──────────────────────────────────
+function filterEmptyTextBlocks(messages){
+  return messages
+    .map(msg=>{
+      if(!Array.isArray(msg.content)) return msg;
+      const filtered=msg.content.filter(
+        b=>!(b.type==='text' && b.text.trim()==='')
+      );
+      return {...msg, content:filtered};
+    })
+    .filter(msg=>{
+      if(Array.isArray(msg.content)) return msg.content.length>0;
+      if(typeof msg.content==='string') return msg.content.trim()!=='';
+      return true;
+    });
+}
 
-      const resultEl = document.getElementById('result');
-      const btn = document.getElementById('checkBtn');
+// ── Audit ─────────────────────────────────────────────────────
+async function runAudit(){
+  const apiKey=getApiKey();
+  if(!apiKey){ openModal('settingsModal'); alert('設定からAPIキーを入力してください'); return; }
+  if(images.length===0 && !csvData){ alert('画像またはCSVをアップロードしてください'); return; }
 
-      if (!apiKey) {
-        showResult('error', 'API キーを入力してください。');
-        return;
-      }
-      if (!activity1 || !activity2) {
-        showResult('error', '両方のカツドヒを入力してください。');
-        return;
-      }
+  const btn=document.getElementById('auditBtn');
+  btn.disabled=true;
 
-      btn.disabled = true;
-      showResult('loading', '判定中...');
+  const ra=document.getElementById('resultArea');
+  ra.style.display='block';
+  ra.innerHTML=`<div class="card loader-wrap"><div class="spinner"></div><div class="loader-text">審査中です… 条例・マニュアル・判例を参照しています</div></div>`;
 
-      const systemPrompt = `あなたは活動記録の重複を判定するアシスタントです。
-2つの活動が本質的に同じかどうかを判断してください。
-表現が違っても内容が同じであれば「同じ」と判定してください。
-回答は必ず JSON 形式で返してください: {"same": true/false, "reason": "理由"}`;
+  try{
+    const result=await callClaude(apiKey);
+    renderResult(result);
+  }catch(err){
+    ra.innerHTML=`<div class="card"><div class="comment-box err">❌ エラー: ${esc(err.message)}</div></div>`;
+  }finally{
+    btn.disabled=false;
+  }
+}
 
-      const userContent = [
-        {
-          type: 'text',
-          text: `以下の2つの活動が同じかどうか判定してください。\n\n活動1: ${activity1}\n活動2: ${activity2}`
-        },
-        {
-          type: 'text',
-          text: context ? `追加コンテキスト: ${context}` : ''
-        }
-      ];
+function buildSystemPrompt(){
+  const kb=getKB();
+  let p='あなたは横須賀市議会の政務活動費審査を支援するAIアシスタントです。審査結果は担当職員が確認・活用します。公正かつ具体的な審査意見を述べてください。';
+  if(kb.jorei)   p+=`\n\n【横須賀市政務活動費条例】\n${kb.jorei}`;
+  if(kb.kisoku)  p+=`\n\n【施行規則】\n${kb.kisoku}`;
+  if(kb.manual)  p+=`\n\n【運用マニュアル】\n${kb.manual}`;
+  if(kb.hanrei)  p+=`\n\n【参考判例】\n${kb.hanrei}`;
+  if(!kb.jorei&&!kb.kisoku&&!kb.manual) p+='\n\n※ 知識ベース未登録のため、一般的な政務活動費の運用基準（総務省ガイドライン等）に基づいて審査します。';
+  return p;
+}
 
-      const rawMessages = [
-        { role: 'user', content: userContent }
-      ];
+async function callClaude(apiKey){
+  const model=getModel();
+  const contentBlocks=[];
 
-      const messages = filterEmptyTextBlocks(rawMessages);
+  images.forEach((img,i)=>{
+    const mediaType=img.dataUrl.startsWith('data:image/png')?'image/png':img.dataUrl.startsWith('data:image/gif')?'image/gif':'image/jpeg';
+    contentBlocks.push({type:'image',source:{type:'base64',media_type:mediaType,data:img.dataUrl.split(',')[1]}});
+    contentBlocks.push({type:'text',text:`（上記画像${i+1}: ${img.name}）`});
+  });
 
-      try {
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': apiKey,
-            'anthropic-version': '2023-06-01',
-            'anthropic-dangerous-direct-browser-access': 'true'
-          },
-          body: JSON.stringify({
-            model: 'claude-haiku-4-5-20251001',
-            max_tokens: 256,
-            system: systemPrompt,
-            messages
-          })
-        });
+  const auditInstructions=`以下の2点について審査してください。
 
-        if (!response.ok) {
-          const err = await response.json().catch(() => ({ error: { message: response.statusText } }));
-          throw new Error(err?.error?.message ?? response.statusText);
-        }
+【①個別案件の審査】
+${images.length>0?`添付の画像（セムカン申請内容画面・領収書）を確認し：`:'（画像なし）'}
+- この支出は政務活動費の対象として適切か
+- 充当方法（全額充当 or 按分）は適切か
+- 領収書と申請内容が一致しているか
+- 条例・施行規則・運用マニュアルに照らして問題がないか
+問題がある場合は【担当者向けコメント】として具体的に記載してください。
+判例の確認が必要な場合は「要判例確認:○○の観点」と明示してください。
 
-        const data = await response.json();
-        const raw = data.content?.[0]?.text ?? '';
-        const jsonMatch = raw.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) throw new Error('レスポンスを解析できませんでした。');
+【②CSVデータの一貫性チェック】
+${csvData?csvData.summary:'（CSVなし）'}
+${csvData?`- 同じ対象者の支出に項目・按分・支払先の不自然な変動がないか
+- 同日・同支払先・同金額の重複がないか
+- 問題がある場合は【担当者向けコメント】として記載してください。`:'（CSVが読み込まれていないためスキップ）'}
 
-        const parsed = JSON.parse(jsonMatch[0]);
-        const isSame = parsed.same === true;
-        showResult(isSame ? 'same' : 'diff', parsed.reason ?? '', isSame);
-      } catch (e) {
-        showResult('error', `エラー: ${e.message}`);
-      } finally {
-        btn.disabled = false;
-      }
-    }
+【出力フォーマット】
+必ず以下の構成で回答してください：
 
-    function showResult(type, message, isSame) {
-      const el = document.getElementById('result');
-      el.className = 'result-' + type;
-      el.style.display = 'block';
+## ①個別案件の審査
+（審査内容・判定理由・担当者向けコメント）
 
-      if (type === 'same' || type === 'diff') {
-        const badge = `<span class="badge badge-${type}">${isSame ? '同じ活動' : '異なる活動'}</span>\n`;
-        el.innerHTML = badge + escapeHtml(message);
-      } else {
-        el.textContent = message;
-      }
-    }
+## ②一覧の一貫性チェック
+（チェック結果・担当者向けコメント）
 
-    function escapeHtml(str) {
-      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    }
-  </script>
+## 総合判定
+承認可 / 要確認（理由） / 不承認（理由）　のいずれかで締めくくってください。`;
+
+  contentBlocks.push({type:'text', text:auditInstructions});
+
+  const rawMessages=[{role:'user', content:contentBlocks}];
+  const messages=filterEmptyTextBlocks(rawMessages);
+
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model, max_tokens:3000, system:buildSystemPrompt(), messages})
+  });
+  if(!res.ok){ const e=await res.json().catch(()=>({})); throw new Error(e.error?.message||`HTTP ${res.status}`); }
+  const data=await res.json();
+  return data.content[0].text;
+}
+
+function renderResult(text){
+  const verdict=text.includes('承認可')?'ok':text.includes('不承認')?'ng':'warn';
+  const verdictLabel=verdict==='ok'?'✅ 承認可':verdict==='ng'?'🔴 不承認':'🟡 要確認';
+
+  const sections=text.split(/^##\s+/m).filter(Boolean);
+  let html=`<div class="card">
+    <div class="result-header">
+      <div style="font-size:15px;font-weight:700;color:#1a3a5c">審査結果</div>
+      <div class="verdict ${verdict}">${verdictLabel}</div>
+    </div>`;
+
+  sections.forEach(sec=>{
+    const nl=sec.indexOf('\n');
+    const title=nl>-1?sec.slice(0,nl).trim():sec.trim();
+    const body=nl>-1?sec.slice(nl+1).trim():'';
+    html+=`<div class="section-result"><h3>${esc(title)}</h3><div class="result-body">${esc(body)}</div></div>`;
+  });
+
+  if(text.includes('要判例確認')){
+    html+=`<div class="comment-box info">⚖️ 判例確認が必要な項目が含まれています。知識ベースの「参考判例」に関連判例を登録すると、次回以降の審査精度が上がります。</div>`;
+  }
+  html+='</div>';
+  document.getElementById('resultArea').innerHTML=html;
+}
+
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') ['kbModal','settingsModal'].forEach(closeModal); });
+</script>
 </body>
 </html>
