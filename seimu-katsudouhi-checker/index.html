@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>政務活動費 審査システム | 横須賀市議会</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans",sans-serif;background:#f0f2f5;color:#1a2433;min-height:100vh}
+.header{background:linear-gradient(135deg,#1a3a5c,#2d5f8a);color:#fff;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.header-title{font-size:17px;font-weight:700}
+.header-sub{font-size:11px;opacity:.7;margin-top:2px}
+.header-btns{display:flex;gap:8px}
+.hbtn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;transition:.2s}
+.hbtn:hover{background:rgba(255,255,255,.25)}
+.wrap{max-width:960px;margin:0 auto;padding:24px 16px}
+.card{background:#fff;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.08);padding:20px;margin-bottom:16px}
+.card-title{font-size:15px;font-weight:700;color:#1a3a5c;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.drop-zone{border:2px dashed #b0c4d8;border-radius:8px;padding:28px;text-align:center;cursor:pointer;transition:.2s;background:#f8fafc}
+.drop-zone:hover,.drop-zone.over{border-color:#2d5f8a;background:#eff6ff}
+.drop-zone input{display:none}
+.drop-icon{font-size:36px;margin-bottom:8px}
+.drop-text{font-size:14px;color:#555}
+.drop-hint{font-size:11px;color:#aaa;margin-top:4px}
+.gallery{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.thumb{position:relative;border-radius:6px;overflow:hidden;border:2px solid #e2e8f0;cursor:pointer;transition:.2s}
+.thumb:hover{border-color:#2d5f8a}
+.thumb img{width:100px;height:80px;object-fit:cover;display:block}
+.thumb-del{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+.thumb-label{font-size:10px;text-align:center;padding:2px 4px;background:#f8fafc;color:#555;max-width:100px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.csv-loaded{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;margin-top:10px}
+.csv-loaded span{flex:1;font-size:13px;color:#166534}
+.csv-reset{background:none;border:1px solid #86efac;color:#166534;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:12px;margin-top:0}
+.audit-btn{width:100%;padding:16px;background:linear-gradient(135deg,#1a3a5c,#2d5f8a);color:#fff;border:none;border-radius:10px;font-size:18px;font-weight:700;cursor:pointer;letter-spacing:.05em;transition:.2s;margin-bottom:16px}
+.audit-btn:hover{opacity:.9;transform:translateY(-1px)}
+.audit-btn:disabled{background:#9ca3af;cursor:not-allowed;transform:none}
+.result-area{display:none}
+.result-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.verdict{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-weight:700;font-size:14px}
+.verdict.ok   {background:#dcfce7;color:#166534}
+.verdict.warn {background:#fef9c3;color:#854d0e}
+.verdict.ng   {background:#fee2e2;color:#991b1b}
+.section-result{margin-bottom:18px}
+.section-result h3{font-size:14px;font-weight:700;color:#1a3a5c;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid #e2e8f0}
+.result-body{font-size:13px;line-height:1.8;white-space:pre-wrap;color:#333}
+.comment-box{background:#fffbeb;border-left:4px solid #f59e0b;padding:10px 14px;border-radius:0 6px 6px 0;margin:8px 0;font-size:13px}
+.comment-box.err{background:#fff1f2;border-color:#f43f5e}
+.comment-box.info{background:#eff6ff;border-color:#3b82f6}
+.loader-wrap{text-align:center;padding:32px}
+.spinner{width:36px;height:36px;border:3px solid #e2e8f0;border-top-color:#2d5f8a;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader-text{font-size:14px;color:#6b7280}
+/* Modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
+.hidden{display:none!important}
+.modal{background:#fff;border-radius:12px;padding:24px;max-width:700px;width:100%;max-height:90vh;overflow-y:auto;position:relative}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:4px;color:#1a3a5c}
+.modal-desc{font-size:12px;color:#6b7280;margin-bottom:16px}
+.modal-close{position:absolute;top:12px;right:12px;background:#f3f4f6;border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:15px}
+.form-label{display:block;font-size:13px;font-weight:700;margin-bottom:6px;color:#1a3a5c}
+.form-input,.kb-ta{width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px}
+.kb-ta{min-height:80px;resize:vertical;font-size:12px;margin-bottom:4px}
+.form-select{width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;margin-bottom:12px}
+.save-btn{padding:8px 20px;background:#1a3a5c;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px}
+.saved-msg{font-size:12px;color:#22c55e;margin-left:8px}
+/* KB file upload */
+.kb-section{border:1px solid #e5e7eb;border-radius:8px;padding:14px;margin-bottom:14px}
+.kb-file-drop{border:1.5px dashed #b0c4d8;border-radius:6px;padding:10px 14px;text-align:center;cursor:pointer;background:#f8fafc;font-size:12px;color:#6b7280;transition:.2s;margin-bottom:6px}
+.kb-file-drop:hover,.kb-file-drop.over{border-color:#2d5f8a;background:#eff6ff;color:#1a3a5c}
+.kb-file-drop input{display:none}
+.file-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;min-height:0}
+.file-chip{display:inline-flex;align-items:center;gap:5px;background:#eff6ff;border:1px solid #bcd0e8;border-radius:20px;padding:3px 10px;font-size:11px;color:#1a3a5c}
+.file-chip-del{background:none;border:none;cursor:pointer;color:#6b7280;font-size:12px;line-height:1;padding:0;margin-left:2px}
+.file-chip-del:hover{color:#ef4444}
+.kb-or{text-align:center;font-size:11px;color:#aaa;margin:4px 0}
+.notif{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:#1a3a5c;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;transition:.3s;opacity:0;pointer-events:none;z-index:200}
+.notif.show{transform:translateX(-50%) translateY(0);opacity:1}
+.notif.warn-notif{background:#d97706}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div>
+    <div class="header-title">政務活動費 審査システム</div>
+    <div class="header-sub">横須賀市議会 ／ セムカン連携対応</div>
+  </div>
+  <div class="header-btns">
+    <button class="hbtn" onclick="openModal('kbModal')">📚 知識ベース</button>
+    <button class="hbtn" onclick="openModal('settingsModal')">⚙️ 設定</button>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- Step 1: Images -->
+  <div class="card">
+    <div class="card-title">🖼 ① セムカン申請画面・領収書をアップロード</div>
+    <div class="drop-zone" id="imgDrop">
+      <div class="drop-icon">📎</div>
+      <div class="drop-text"><strong>画像をここにドロップ</strong>　またはクリックして選択</div>
+      <div class="drop-hint">複数可 ／ PNG・JPG・GIF 対応</div>
+      <input type="file" id="imgInput" accept="image/*" multiple>
+    </div>
+    <div class="gallery" id="gallery"></div>
+  </div>
+
+  <!-- Step 2: CSV -->
+  <div class="card">
+    <div class="card-title">📊 ② 収支明細CSV（任意・一覧チェック用）</div>
+    <div class="drop-zone" id="csvDrop">
+      <div class="drop-icon">📂</div>
+      <div class="drop-text"><strong>CSVをここにドロップ</strong>　またはクリックして選択</div>
+      <div class="drop-hint">セムカンからエクスポートしたCSVファイル</div>
+      <input type="file" id="csvInput" accept=".csv">
+    </div>
+    <div id="csvLoaded" class="hidden">
+      <div class="csv-loaded">
+        <span>📋 <strong id="csvName"></strong>　<span id="csvStat" style="opacity:.7"></span></span>
+        <button class="csv-reset" onclick="resetCSV()">✕ 削除</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audit button -->
+  <button class="audit-btn" id="auditBtn" onclick="runAudit()">🔍 審査する</button>
+
+  <!-- Result -->
+  <div class="result-area" id="resultArea"></div>
+
+</div>
+
+<!-- ── Knowledge Base Modal ── -->
+<div class="overlay hidden" id="kbModal" onclick="overlayClose(event,'kbModal')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('kbModal')">✕</button>
+    <div class="modal-title">📚 知識ベース</div>
+    <div class="modal-desc">PDF・CSV・Word・Excelファイルをアップロード、またはテキストを直接入力してください。登録した内容はAI審査の判断根拠として自動的に使用されます。</div>
+
+    <div id="kbSections"></div>
+
+    <div style="display:flex;align-items:center;margin-top:4px">
+      <button class="save-btn" onclick="saveKB()">💾 保存</button>
+      <span class="saved-msg hidden" id="kbSaved">✓ 保存しました</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── Settings Modal ── -->
+<div class="overlay hidden" id="settingsModal" onclick="overlayClose(event,'settingsModal')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('settingsModal')">✕</button>
+    <div class="modal-title">⚙️ 設定</div>
+    <div class="modal-desc" style="margin-bottom:16px">APIキーはこのPC内にのみ保存されます。</div>
+    <label class="form-label">Claude API キー</label>
+    <input type="password" class="form-input" id="set_apikey" placeholder="sk-ant-api03-..." style="margin-bottom:12px">
+    <label class="form-label">モデル</label>
+    <select class="form-select" id="set_model">
+      <option value="claude-sonnet-4-6">claude-sonnet-4-6（推奨・高精度）</option>
+      <option value="claude-haiku-4-5-20251001">claude-haiku-4-5（高速・低コスト）</option>
+    </select>
+    <button class="save-btn" onclick="saveSettings()">💾 保存</button>
+    <span class="saved-msg hidden" id="setSaved">✓ 保存しました</span>
+  </div>
+</div>
+
+<div class="notif" id="notif"></div>
+
+<script>
+'use strict';
+
+// ── KB field definitions ──────────────────────────────────────
+const KB_FIELDS = [
+  { key:'jorei',  label:'横須賀市政務活動費条例',   placeholder:'条例の本文を貼り付けるか、PDFをアップロードしてください...' },
+  { key:'kisoku', label:'施行規則',                 placeholder:'施行規則の本文を貼り付けるか、PDFをアップロードしてください...' },
+  { key:'manual', label:'運用マニュアル',            placeholder:'運用マニュアルを貼り付けるか、ファイルをアップロードしてください...' },
+  { key:'hanrei', label:'参考判例',                 placeholder:'関連する判例・裁判例の概要を貼り付けてください...' },
+];
+
+// ── Storage ───────────────────────────────────────────────────
+const SK = { kb:'seimu_kb3', apikey:'seimu_apikey', model:'seimu_model' };
+const load  = k => { try{ return JSON.parse(localStorage.getItem(k)||'null'); }catch{ return null; } };
+const store = (k,v) => localStorage.setItem(k, JSON.stringify(v));
+const getApiKey = () => localStorage.getItem(SK.apikey) || '';
+const getModel  = () => localStorage.getItem(SK.model) || 'claude-sonnet-4-6';
+function getKB(){
+  const d = load(SK.kb) || {};
+  KB_FIELDS.forEach(f=>{ if(!d[f.key]) d[f.key]={text:'',files:[]}; });
+  return d;
+}
+
+// ── App state ─────────────────────────────────────────────────
+let images  = [];
+let csvData = null;
+
+// ── Utilities ─────────────────────────────────────────────────
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function notify(msg, type='ok'){
+  const el=document.getElementById('notif');
+  el.textContent=msg;
+  el.className='notif'+(type==='warn'?' warn-notif':'')+' show';
+  setTimeout(()=>el.classList.remove('show'),3500);
+}
+const openModal  = id => { initModal(id); document.getElementById(id).classList.remove('hidden'); };
+const closeModal = id => document.getElementById(id).classList.add('hidden');
+const overlayClose = (e,id) => { if(e.target===document.getElementById(id)) closeModal(id); };
+
+// ── Knowledge Base Modal ──────────────────────────────────────
+function initModal(id){
+  if(id==='kbModal') renderKBSections();
+  if(id==='settingsModal'){
+    document.getElementById('set_apikey').value=getApiKey();
+    document.getElementById('set_model').value=getModel();
+  }
+}
+
+function renderKBSections(){
+  const kb=getKB();
+  const container=document.getElementById('kbSections');
+  container.innerHTML=KB_FIELDS.map(f=>`
+    <div class="kb-section">
+      <div class="form-label">${esc(f.label)}</div>
+      <div class="kb-file-drop" id="kbDrop_${f.key}" onclick="document.getElementById('kbFile_${f.key}').click()">
+        📎 ファイルをドロップまたはクリック（PDF・CSV・Word・Excel・TXT）
+        <input type="file" id="kbFile_${f.key}" accept=".pdf,.csv,.txt,.docx,.xlsx,.xls,.doc" multiple
+          onchange="handleKBFiles('${f.key}',this.files)">
+      </div>
+      <div class="file-chips" id="kbChips_${f.key}"></div>
+      <div class="kb-or">── または直接入力 ──</div>
+      <textarea class="kb-ta" id="kbText_${f.key}" placeholder="${esc(f.placeholder)}">${esc(kb[f.key].text||'')}</textarea>
+    </div>`).join('');
+
+  KB_FIELDS.forEach(f=>{
+    renderKBChips(f.key);
+    const dz=document.getElementById('kbDrop_'+f.key);
+    dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over')});
+    dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+    dz.addEventListener('drop',e=>{
+      e.preventDefault();dz.classList.remove('over');
+      handleKBFiles(f.key, e.dataTransfer.files);
+    });
+  });
+}
+
+function renderKBChips(key){
+  const kb=getKB();
+  const files=kb[key].files||[];
+  const el=document.getElementById('kbChips_'+key);
+  if(!el) return;
+  el.innerHTML=files.map((f,i)=>`
+    <span class="file-chip">
+      ${fileIcon(f.fileType)} ${esc(f.name)}
+      <button class="file-chip-del" onclick="removeKBFile('${key}',${i})" title="削除">✕</button>
+    </span>`).join('');
+}
+const fileIcon = t => t==='pdf'?'📄':t==='csv'?'📊':t==='text'?'📝':'📎';
+
+function removeKBFile(key,i){
+  const kb=getKB();
+  kb[key].files.splice(i,1);
+  store(SK.kb,kb);
+  renderKBChips(key);
+  notify('ファイルを削除しました');
+}
+
+async function handleKBFiles(key, fileList){
+  const files=[...fileList];
+  for(const file of files){
+    await readKBFile(key, file);
+  }
+  renderKBChips(key);
+  notify(`${files.length}件のファイルを追加しました`);
+}
+
+function readKBFile(key, file){
+  return new Promise(resolve=>{
+    const ext=file.name.split('.').pop().toLowerCase();
+    const kb=getKB();
+
+    if(ext==='pdf'){
+      const reader=new FileReader();
+      reader.onload=e=>{
+        const base64=e.target.result.split(',')[1];
+        const sizeKB=Math.round(base64.length*3/4/1024);
+        if(sizeKB>4000){
+          notify(`"${file.name}" は大きすぎます（${sizeKB}KB）。4MB以下のPDFをお使いください。`,'warn');
+          return resolve();
+        }
+        kb[key].files.push({name:file.name, fileType:'pdf', data:base64});
+        try{ store(SK.kb,kb); }catch(e){ notify('保存容量が不足しています。不要なファイルを削除してください。','warn'); }
+        resolve();
+      };
+      reader.readAsDataURL(file);
+
+    } else if(['csv','txt'].includes(ext)){
+      const reader=new FileReader();
+      reader.onload=e=>{
+        let text=e.target.result;
+        if(text.includes('???')||text.includes('&#65533;')){
+          const r2=new FileReader();
+          r2.onload=e2=>{ appendKBText(key,file.name,e2.target.result); resolve(); };
+          r2.readAsText(file,'Shift-JIS');
+        } else { appendKBText(key,file.name,text); resolve(); }
+      };
+      reader.readAsText(file,'UTF-8');
+
+    } else if(['docx','doc','xlsx','xls'].includes(ext)){
+      // Word/Excel: 直接パース不可 → ファイル名のみ記録しユーザーに案内
+      notify(`"${file.name}": WordとExcelはPDFに変換してからアップロードしてください。`,'warn');
+      resolve();
+
+    } else {
+      // その他テキスト系
+      const reader=new FileReader();
+      reader.onload=e=>{ appendKBText(key,file.name,e.target.result); resolve(); };
+      reader.readAsText(file,'UTF-8');
+    }
+  });
+}
+
+function appendKBText(key, filename, text){
+  const kb=getKB();
+  const current=kb[key].text||'';
+  const header=`\n\n--- ${filename} ---\n`;
+  kb[key].text=(current+header+text).trim();
+  kb[key].files.push({name:filename, fileType:'text', data:null});
+  try{ store(SK.kb,kb); }catch(e){ notify('保存容量が不足しています。','warn'); }
+  const ta=document.getElementById('kbText_'+key);
+  if(ta) ta.value=kb[key].text;
+}
+
+function saveKB(){
+  const kb=getKB();
+  KB_FIELDS.forEach(f=>{
+    const ta=document.getElementById('kbText_'+f.key);
+    if(ta) kb[f.key].text=ta.value;
+  });
+  try{
+    store(SK.kb,kb);
+    flashSaved('kbSaved');
+    notify('知識ベースを保存しました');
+  }catch(e){
+    notify('保存容量が不足しています。不要なPDFファイルを削除してください。','warn');
+  }
+}
+
+function saveSettings(){
+  localStorage.setItem(SK.apikey, document.getElementById('set_apikey').value.trim());
+  localStorage.setItem(SK.model,  document.getElementById('set_model').value);
+  flashSaved('setSaved');
+  notify('設定を保存しました');
+}
+function flashSaved(id){ const el=document.getElementById(id); el.classList.remove('hidden'); setTimeout(()=>el.classList.add('hidden'),2500); }
+
+// ── Image upload ──────────────────────────────────────────────
+(function(){
+  const dz=document.getElementById('imgDrop'), fi=document.getElementById('imgInput');
+  dz.addEventListener('click',()=>fi.click());
+  fi.addEventListener('change',e=>{ [...e.target.files].forEach(addImage); fi.value=''; });
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over')});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+  dz.addEventListener('drop',e=>{
+    e.preventDefault();dz.classList.remove('over');
+    [...e.dataTransfer.files].filter(f=>f.type.startsWith('image/')).forEach(addImage);
+  });
+})();
+function addImage(file){
+  const reader=new FileReader();
+  reader.onload=e=>{ images.push({name:file.name, dataUrl:e.target.result}); renderGallery(); };
+  reader.readAsDataURL(file);
+}
+function removeImage(i){ images.splice(i,1); renderGallery(); }
+function renderGallery(){
+  document.getElementById('gallery').innerHTML=images.map((img,i)=>`
+    <div class="thumb" onclick="lightbox('${img.dataUrl}')">
+      <img src="${img.dataUrl}" alt="${esc(img.name)}">
+      <button class="thumb-del" onclick="event.stopPropagation();removeImage(${i})">✕</button>
+      <div class="thumb-label">${esc(img.name)}</div>
+    </div>`).join('');
+}
+function lightbox(src){
+  const w=window.open('','_blank','width=900,height=700');
+  w.document.write(`<body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${src}" style="max-width:100%;max-height:100vh"></body>`);
+}
+
+// ── CSV upload ────────────────────────────────────────────────
+const C={申請番号:0,交付対象:1,対象者:3,タイプ:4,整理番号:5,ステータス:6,項目:7,細目:8,日付:9,金額:10,充当金額:12,充当方法:13,按分1:14,支払先:16,摘要:17,備考:18,領収書:20,証明書:21};
+(function(){
+  const dz=document.getElementById('csvDrop'), fi=document.getElementById('csvInput');
+  dz.addEventListener('click',()=>fi.click());
+  fi.addEventListener('change',e=>{ if(e.target.files[0]) loadCSV(e.target.files[0]); fi.value=''; });
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over')});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+  dz.addEventListener('drop',e=>{
+    e.preventDefault();dz.classList.remove('over');
+    const f=e.dataTransfer.files[0];
+    if(f&&f.name.toLowerCase().endsWith('.csv')) loadCSV(f);
+  });
+})();
+function loadCSV(file){
+  const rd=new FileReader();
+  rd.onload=e=>{ let t=e.target.result; if(t.includes('???')||t.includes('&#65533;')){ const r2=new FileReader(); r2.onload=e2=>processCSV(e2.target.result,file.name); r2.readAsText(file,'Shift-JIS'); } else processCSV(t,file.name); };
+  rd.readAsText(file,'UTF-8');
+}
+function parseCSV(text){
+  text=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  const rows=[]; let i=0;
+  while(i<text.length){
+    const row=[]; let first=true;
+    while(i<text.length){
+      if(!first){ if(text[i]===',') i++; else break; }
+      first=false; let f='';
+      if(i<text.length&&text[i]==='"'){ i++; while(i<text.length){ if(text[i]==='"'){ if(text[i+1]==='"'){f+='"';i+=2;}else{i++;break;} }else{f+=text[i];i++;} } }
+      else{ while(i<text.length&&text[i]!==','&&text[i]!=='\n'){f+=text[i];i++;} }
+      row.push(f.trim());
+    }
+    if(i<text.length&&text[i]==='\n') i++;
+    if(row.length>1||(row.length===1&&row[0]!=='')) rows.push(row);
+  }
+  return rows;
+}
+function processCSV(text,name){
+  const rows=parseCSV(text);
+  const expenses=rows.slice(1).filter(r=>r[C.タイプ]==='支出');
+  const members=[...new Set(expenses.map(r=>r[C.対象者]).filter(Boolean))];
+  const total=expenses.reduce((s,r)=>s+(parseInt(r[C.充当金額])||0),0);
+  csvData={name, rows:expenses, summary:buildCSVSummary(expenses,members), count:expenses.length, total};
+  document.getElementById('csvName').textContent=name;
+  document.getElementById('csvStat').textContent=`支出 ${expenses.length}件 ／ 充当合計 ${total.toLocaleString()}円`;
+  document.getElementById('csvLoaded').classList.remove('hidden');
+  notify('CSVを読み込みました');
+}
+function buildCSVSummary(expenses,members){
+  let s='【収支明細CSV サマリー】\n総支出件数:'+expenses.length+'件\n\n';
+  members.forEach(m=>{
+    const rows=expenses.filter(r=>r[C.対象者]===m);
+    s+=`▼ ${m}（${rows.length}件）\n`;
+    const cats=[...new Set(rows.map(r=>r[C.項目]).filter(Boolean))];
+    cats.forEach(cat=>{
+      const cr=rows.filter(r=>r[C.項目]===cat);
+      const payees=[...new Set(cr.map(r=>r[C.支払先]).filter(Boolean))];
+      const methods=[...new Set(cr.map(r=>r[C.充当方法]).filter(Boolean))];
+      const buntans=[...new Set(cr.map(r=>r[C.按分1]).filter(Boolean))];
+      s+=`  [${cat}] 件数:${cr.length} 支払先:${payees.slice(0,5).join('/')} 充当:${methods.join('/')}${buntans.length?' 按分:'+buntans.join('/'):''}`;
+      const dups=findDups(cr);
+      if(dups.length) s+=`\n  ⚠️重複候補:${dups.join(',')}`;
+      s+='\n';
+    });
+  });
+  return s;
+}
+function findDups(rows){
+  const seen={},dups=[];
+  rows.forEach(r=>{ const k=`${r[C.日付]}_${r[C.支払先]}_${r[C.金額]}`; if(seen[k]) dups.push(`${r[C.日付]}/${r[C.支払先]}`); seen[k]=true; });
+  return [...new Set(dups)];
+}
+function resetCSV(){ csvData=null; document.getElementById('csvLoaded').classList.add('hidden'); }
+
+// ── Filter empty text blocks before Anthropic API call ────────
+function filterEmptyTextBlocks(messages){
+  return messages
+    .map(msg=>{
+      if(!Array.isArray(msg.content)) return msg;
+      const filtered=msg.content.filter(b=>!(b.type==='text'&&b.text.trim()===''));
+      return {...msg, content:filtered};
+    })
+    .filter(msg=>{
+      if(Array.isArray(msg.content)) return msg.content.length>0;
+      if(typeof msg.content==='string') return msg.content.trim()!=='';
+      return true;
+    });
+}
+
+// ── Audit ─────────────────────────────────────────────────────
+async function runAudit(){
+  const apiKey=getApiKey();
+  if(!apiKey){ openModal('settingsModal'); alert('設定からAPIキーを入力してください'); return; }
+  if(images.length===0&&!csvData){ alert('画像またはCSVをアップロードしてください'); return; }
+
+  const btn=document.getElementById('auditBtn');
+  btn.disabled=true;
+  const ra=document.getElementById('resultArea');
+  ra.style.display='block';
+  ra.innerHTML=`<div class="card loader-wrap"><div class="spinner"></div><div class="loader-text">審査中です… 条例・マニュアル・判例を参照しています</div></div>`;
+
+  try{
+    const result=await callClaude(apiKey);
+    renderResult(result);
+  }catch(err){
+    ra.innerHTML=`<div class="card"><div class="comment-box err">❌ エラー: ${esc(err.message)}</div></div>`;
+  }finally{
+    btn.disabled=false;
+  }
+}
+
+function buildSystemPrompt(){
+  const kb=getKB();
+  let p='あなたは横須賀市議会の政務活動費審査を支援するAIアシスタントです。公正かつ具体的な審査意見を述べてください。';
+  KB_FIELDS.forEach(f=>{
+    const text=(kb[f.key].text||'').trim();
+    if(text) p+=`\n\n【${f.label}】\n${text}`;
+  });
+  const hasAnyText=KB_FIELDS.some(f=>(kb[f.key].text||'').trim());
+  if(!hasAnyText) p+='\n\n※ 知識ベース未登録のため、一般的な政務活動費の運用基準に基づいて審査します。';
+  return p;
+}
+
+async function callClaude(apiKey){
+  const model=getModel();
+  const kb=getKB();
+  const contentBlocks=[];
+
+  // KB PDFs as document blocks (first, so Claude reads them as context)
+  KB_FIELDS.forEach(f=>{
+    (kb[f.key].files||[]).filter(file=>file.fileType==='pdf'&&file.data).forEach(file=>{
+      contentBlocks.push({type:'document',source:{type:'base64',media_type:'application/pdf',data:file.data}});
+      contentBlocks.push({type:'text',text:`（上記PDF: ${file.name} ／ ${f.label}）`});
+    });
+  });
+
+  // Audit images
+  images.forEach((img,i)=>{
+    const mediaType=img.dataUrl.startsWith('data:image/png')?'image/png':img.dataUrl.startsWith('data:image/gif')?'image/gif':'image/jpeg';
+    contentBlocks.push({type:'image',source:{type:'base64',media_type:mediaType,data:img.dataUrl.split(',')[1]}});
+    contentBlocks.push({type:'text',text:`（上記画像${i+1}: ${img.name}）`});
+  });
+
+  const auditText=`以下の2点について審査してください。
+
+【①個別案件の審査】
+${images.length>0?'添付の画像（セムカン申請内容・領収書）を確認し：':'（画像なし）'}
+- 政務活動費の対象として適切か
+- 充当方法（全額充当 or 按分）は適切か
+- 領収書と申請内容が一致しているか
+- 条例・施行規則・運用マニュアルに照らして問題がないか
+問題がある場合は【担当者向けコメント】として具体的に記載し、判例確認が必要な場合は「要判例確認:○○の観点」と明示してください。
+
+【②CSVデータの一貫性チェック】
+${csvData?csvData.summary+'- 同じ対象者の支出に不自然な変動がないか\n- 同日・同支払先・同金額の重複がないか':'（CSVなし）'}
+
+【出力フォーマット】
+## ①個別案件の審査
+（内容・担当者向けコメント）
+
+## ②一覧の一貫性チェック
+（チェック結果・担当者向けコメント）
+
+## 総合判定
+承認可 / 要確認（理由） / 不承認（理由）　のいずれかで締めくくってください。`;
+
+  contentBlocks.push({type:'text', text:auditText});
+
+  // Filter out empty text blocks before sending to the Anthropic API
+  const rawMessages=[{role:'user', content:contentBlocks}];
+  const messages=filterEmptyTextBlocks(rawMessages);
+
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model, max_tokens:3000, system:buildSystemPrompt(), messages})
+  });
+  if(!res.ok){ const e=await res.json().catch(()=>({})); throw new Error(e.error?.message||`HTTP ${res.status}`); }
+  const data=await res.json();
+  return data.content[0].text;
+}
+
+function renderResult(text){
+  const verdict=text.includes('承認可')?'ok':text.includes('不承認')?'ng':'warn';
+  const verdictLabel=verdict==='ok'?'✅ 承認可':verdict==='ng'?'🔴 不承認':'🟡 要確認';
+  const sections=text.split(/^##\s+/m).filter(Boolean);
+  let html=`<div class="card"><div class="result-header"><div style="font-size:15px;font-weight:700;color:#1a3a5c">審査結果</div><div class="verdict ${verdict}">${verdictLabel}</div></div>`;
+  sections.forEach(sec=>{
+    const nl=sec.indexOf('\n');
+    const title=nl>-1?sec.slice(0,nl).trim():sec.trim();
+    const body=nl>-1?sec.slice(nl+1).trim():'';
+    html+=`<div class="section-result"><h3>${esc(title)}</h3><div class="result-body">${esc(body)}</div></div>`;
+  });
+  if(text.includes('要判例確認')){
+    html+=`<div class="comment-box info">⚖️ 判例確認が必要な項目があります。知識ベースの「参考判例」に関連判例を登録すると審査精度が上がります。</div>`;
+  }
+  html+='</div>';
+  document.getElementById('resultArea').innerHTML=html;
+}
+
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') ['kbModal','settingsModal'].forEach(closeModal); });
+</script>
+</body>
+</html>
