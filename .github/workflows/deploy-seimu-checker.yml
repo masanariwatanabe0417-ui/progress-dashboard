@@ -1,0 +1,25 @@
+name: 政務活動費審査システム デプロイ
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'seimu-katsudouhi-checker/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Surgeにデプロイ
+        run: npx surge seimu-katsudouhi-checker/ seimu-checker-yokosuka.surge.sh
+        env:
+          SURGE_LOGIN: ${{ secrets.MAGAZINE_SURGE_LOGIN }}
+          SURGE_TOKEN: ${{ secrets.MAGAZINE_SURGE_TOKEN }}
