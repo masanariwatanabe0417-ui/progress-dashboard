@@ -510,13 +510,25 @@ async function callClaude(apiKey){
   const kb=getKB();
   const contentBlocks=[];
 
-  // KB PDFs as document blocks (first, so Claude reads them as context)
+  // KB PDFs as document blocks — skip files that would exceed the 4MB total budget
+  const PDF_BUDGET = 4 * 1024 * 1024; // 4 MB (base64 decoded)
+  let pdfBytesUsed = 0;
+  let pdfSkipped = [];
   KB_FIELDS.forEach(f=>{
     (kb[f.key].files||[]).filter(file=>file.fileType==='pdf'&&file.data).forEach(file=>{
+      const bytes = Math.round(file.data.length * 3 / 4);
+      if(pdfBytesUsed + bytes > PDF_BUDGET){
+        pdfSkipped.push(file.name);
+        return;
+      }
+      pdfBytesUsed += bytes;
       contentBlocks.push({type:'document',source:{type:'base64',media_type:'application/pdf',data:file.data}});
       contentBlocks.push({type:'text',text:`（上記PDF: ${file.name} ／ ${f.label}）`});
     });
   });
+  if(pdfSkipped.length){
+    notify(`容量超過のためスキップ: ${pdfSkipped.join(', ')}`, 'warn');
+  }
 
   // Audit images
   images.forEach((img,i)=>{
@@ -554,11 +566,23 @@ ${csvData?csvData.summary+'- 同じ対象者の支出に不自然な変動がな
   const rawMessages=[{role:'user', content:contentBlocks}];
   const messages=filterEmptyTextBlocks(rawMessages);
 
-  const res=await fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify({model, max_tokens:3000, system:buildSystemPrompt(), messages})
-  });
+  const reqBody = JSON.stringify({model, max_tokens:3000, system:buildSystemPrompt(), messages});
+  const reqKB = Math.round(reqBody.length / 1024);
+  console.log(`リクエストサイズ: ${reqKB} KB`);
+  if(reqKB > 20000){
+    throw new Error(`リクエストが大きすぎます（${reqKB} KB）。知識ベースのPDFを減らすか、画像を1枚にしてください。`);
+  }
+
+  let res;
+  try{
+    res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:reqBody
+    });
+  }catch(fetchErr){
+    throw new Error(`APIへの接続に失敗しました（${reqKB} KB）。PDFが大きすぎる可能性があります。知識ベースのPDFを1つに減らして試してください。`);
+  }
   if(!res.ok){ const e=await res.json().catch(()=>({})); throw new Error(e.error?.message||`HTTP ${res.status}`); }
   const data=await res.json();
   return data.content[0].text;
