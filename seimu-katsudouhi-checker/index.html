@@ -505,15 +505,23 @@ function buildSystemPrompt(){
   return p;
 }
 
+// システムプロンプトをキャッシュ対応形式に変換
+function buildSystemBlocks(){
+  const text = buildSystemPrompt();
+  return [{ type: 'text', text, cache_control: { type: 'ephemeral' } }];
+}
+
 async function callClaude(apiKey){
   const model=getModel();
   const kb=getKB();
   const contentBlocks=[];
 
   // KB PDFs as document blocks — skip files that would exceed the 4MB total budget
+  // The last PDF block gets cache_control to cache all static KB content
   const PDF_BUDGET = 4 * 1024 * 1024; // 4 MB (base64 decoded)
   let pdfBytesUsed = 0;
   let pdfSkipped = [];
+  const pdfBlocks = [];
   KB_FIELDS.forEach(f=>{
     (kb[f.key].files||[]).filter(file=>file.fileType==='pdf'&&file.data).forEach(file=>{
       const bytes = Math.round(file.data.length * 3 / 4);
@@ -522,10 +530,15 @@ async function callClaude(apiKey){
         return;
       }
       pdfBytesUsed += bytes;
-      contentBlocks.push({type:'document',source:{type:'base64',media_type:'application/pdf',data:file.data}});
-      contentBlocks.push({type:'text',text:`（上記PDF: ${file.name} ／ ${f.label}）`});
+      pdfBlocks.push({type:'document',source:{type:'base64',media_type:'application/pdf',data:file.data}});
+      pdfBlocks.push({type:'text',text:`（上記PDF: ${file.name} ／ ${f.label}）`});
     });
   });
+  // キャッシュブレークポイント: 最後のPDFブロックにcache_controlを付与
+  if(pdfBlocks.length > 0){
+    pdfBlocks[pdfBlocks.length - 1].cache_control = { type: 'ephemeral' };
+  }
+  contentBlocks.push(...pdfBlocks);
   if(pdfSkipped.length){
     notify(`容量超過のためスキップ: ${pdfSkipped.join(', ')}`, 'warn');
   }
@@ -566,7 +579,7 @@ ${csvData?csvData.summary+'- 同じ対象者の支出に不自然な変動がな
   const rawMessages=[{role:'user', content:contentBlocks}];
   const messages=filterEmptyTextBlocks(rawMessages);
 
-  const reqBody = JSON.stringify({model, max_tokens:3000, system:buildSystemPrompt(), messages});
+  const reqBody = JSON.stringify({model, max_tokens:3000, system:buildSystemBlocks(), messages});
   const reqKB = Math.round(reqBody.length / 1024);
   console.log(`リクエストサイズ: ${reqKB} KB`);
   if(reqKB > 20000){
@@ -577,7 +590,7 @@ ${csvData?csvData.summary+'- 同じ対象者の支出に不自然な変動がな
   try{
     res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-beta':'prompt-caching-2024-07-31','anthropic-dangerous-direct-browser-access':'true'},
       body:reqBody
     });
   }catch(fetchErr){
