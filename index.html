@@ -99,7 +99,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans",san
     <div class="drop-zone" id="imgDrop">
       <div class="drop-icon">📎</div>
       <div class="drop-text"><strong>画像をここにドロップ</strong>　またはクリックして選択</div>
-      <div class="drop-hint">複数可 ／ PNG・JPG・GIF 対応</div>
+      <div class="drop-hint">複数可 ／ PNG・JPG・GIF 対応 ／ <strong>Cmd+V で貼り付け</strong>も可</div>
       <input type="file" id="imgInput" accept="image/*" multiple>
     </div>
     <div class="gallery" id="gallery"></div>
@@ -362,6 +362,17 @@ function flashSaved(id){ const el=document.getElementById(id); el.classList.remo
   dz.addEventListener('drop',e=>{
     e.preventDefault();dz.classList.remove('over');
     [...e.dataTransfer.files].filter(f=>f.type.startsWith('image/')).forEach(addImage);
+  });
+  // Cmd+V / Ctrl+V でのクリップボード貼り付け
+  document.addEventListener('paste',e=>{
+    const items=[...(e.clipboardData?.items||[])];
+    const imgItems=items.filter(it=>it.type.startsWith('image/'));
+    if(imgItems.length===0) return;
+    e.preventDefault();
+    imgItems.forEach(it=>{
+      const file=it.getAsFile();
+      if(file) addImage(file);
+    });
   });
 })();
 function addImage(file){
