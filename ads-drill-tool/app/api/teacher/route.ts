@@ -22,15 +22,16 @@ export async function POST(req: Request) {
 以下のJSON形式のみで返してください（他のテキストは含めない）：
 {
   "lessonInfo": {
-    "series": "スクリーンショット右上に表示されているシリーズ名（例：React）",
+    "series": "スクリーンショット右上のシリーズ名（例：React）",
     "course": "コース名（例：Hooks編）",
     "lesson": "レッスン名（例：Suspense と Error Boundary）",
-    "questionInfo": "問題番号情報（例：Q10/10）"
+    "questionInfo": "問題番号（例：Q10）"
   },
-  "explanation": "## このドリルで学ぶこと\\n（1〜2文でレッスンのテーマ）\\n\\n## 核心的なコンセプト\\n（問題が問いかけている概念を箇条書き3〜5点）\\n\\n## 解説\\n（なぜこの答えになるのか初学者向けに具体的に。コード例があると良い）\\n\\n## 覚えるべきポイント\\n（実際の開発で使える重要なポイント1〜3点）"
+  "keyLearning": "この問題で学ぶ核心を1〜2文で（例：Suspenseは複数コンポーネントのローディングをまとめて管理したいときに使う）",
+  "explanation": "## このドリルで学ぶこと\\n（1〜2文）\\n\\n## 核心的なコンセプト\\n（箇条書き3〜5点）\\n\\n## 解説\\n（なぜこの答えになるのか初学者向けに具体的に。コード例があると良い）\\n\\n## 覚えるべきポイント\\n（重要ポイント1〜3点）"
 }
 
-lessonInfoは必ずスクリーンショット内の文字から読み取ってください。`,
+lessonInfoは必ずスクリーンショット内の文字から読み取り、questionInfoは「Q数字」の形式にしてください。`,
       },
     ];
 
@@ -42,7 +43,11 @@ lessonInfoは必ずスクリーンショット内の文字から読み取って�
 
     const rawText = message.content[0].type === "text" ? message.content[0].text : "{}";
 
-    let parsed: { lessonInfo?: { series: string; course: string; lesson: string; questionInfo: string }; explanation?: string };
+    let parsed: {
+      lessonInfo?: { series: string; course: string; lesson: string; questionInfo: string };
+      keyLearning?: string;
+      explanation?: string;
+    };
     try {
       const jsonMatch = rawText.match(/\{[\s\S]*\}/);
       parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
@@ -51,7 +56,8 @@ lessonInfoは必ずスクリーンショット内の文字から読み取って�
     }
 
     return Response.json({
-      lessonInfo: parsed.lessonInfo ?? { series: "不明", course: "不明", lesson: "不明", questionInfo: "" },
+      lessonInfo: parsed.lessonInfo ?? { series: "不明", course: "不明", lesson: "不明", questionInfo: "Q?" },
+      keyLearning: parsed.keyLearning ?? "",
       explanation: parsed.explanation ?? rawText,
     });
   } catch (error) {

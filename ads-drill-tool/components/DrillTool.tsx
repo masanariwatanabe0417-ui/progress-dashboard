@@ -5,7 +5,58 @@ import NavigationPane from "./panes/NavigationPane";
 import ScreenshotPane from "./panes/ScreenshotPane";
 import TeacherPane from "./panes/TeacherPane";
 import QuestionPane from "./panes/QuestionPane";
-import { DrillScreenshots, ExtractedLessonInfo, QAEntry, StudiedEntry } from "@/lib/types";
+import {
+  DrillScreenshots,
+  ExtractedLessonInfo,
+  QAEntry,
+  StudyLog,
+  TeacherView,
+} from "@/lib/types";
+
+function makeCourseKey(series: string, course: string) {
+  return `${series}__${course}`;
+}
+
+function addToStudyLog(
+  log: StudyLog,
+  lessonInfo: ExtractedLessonInfo,
+  keyLearning: string,
+  explanation: string
+): StudyLog {
+  const courseKey = makeCourseKey(lessonInfo.series, lessonInfo.course);
+  const courses = [...log.courses];
+
+  let courseIdx = courses.findIndex((c) => c.courseKey === courseKey);
+  if (courseIdx === -1) {
+    courses.push({
+      courseKey,
+      seriesName: lessonInfo.series,
+      courseName: lessonInfo.course,
+      lessons: [],
+    });
+    courseIdx = courses.length - 1;
+  }
+
+  const course = { ...courses[courseIdx], lessons: [...courses[courseIdx].lessons] };
+  let lessonIdx = course.lessons.findIndex((l) => l.lessonName === lessonInfo.lesson);
+  if (lessonIdx === -1) {
+    course.lessons.push({ lessonName: lessonInfo.lesson, questions: [] });
+    lessonIdx = course.lessons.length - 1;
+  }
+
+  const lesson = { ...course.lessons[lessonIdx], questions: [...course.lessons[lessonIdx].questions] };
+  const qIdx = lesson.questions.findIndex((q) => q.questionInfo === lessonInfo.questionInfo);
+  const newQ = { questionInfo: lessonInfo.questionInfo, keyLearning, explanation, timestamp: Date.now() };
+  if (qIdx === -1) {
+    lesson.questions.push(newQ);
+  } else {
+    lesson.questions[qIdx] = newQ;
+  }
+
+  course.lessons[lessonIdx] = lesson;
+  courses[courseIdx] = course;
+  return { courses };
+}
 
 export default function DrillTool() {
   const [screenshots, setScreenshots] = useState<DrillScreenshots>({
@@ -13,8 +64,8 @@ export default function DrillTool() {
     answerImage: null,
   });
   const [currentLessonInfo, setCurrentLessonInfo] = useState<ExtractedLessonInfo | null>(null);
-  const [studiedEntries, setStudiedEntries] = useState<StudiedEntry[]>([]);
-  const [teacherExplanation, setTeacherExplanation] = useState("");
+  const [studyLog, setStudyLog] = useState<StudyLog>({ courses: [] });
+  const [teacherView, setTeacherView] = useState<TeacherView>(null);
   const [teacherLoading, setTeacherLoading] = useState(false);
   const [qaEntries, setQaEntries] = useState<QAEntry[]>([]);
   const [questionLoading, setQuestionLoading] = useState(false);
@@ -23,8 +74,7 @@ export default function DrillTool() {
     async (newScreenshots: DrillScreenshots) => {
       if (!newScreenshots.questionImage) return;
       setTeacherLoading(true);
-      setTeacherExplanation("");
-      setCurrentLessonInfo(null);
+      setTeacherView(null);
       try {
         const res = await fetch("/api/teacher", {
           method: "POST",
@@ -35,21 +85,15 @@ export default function DrillTool() {
           }),
         });
         const data = await res.json();
-        if (data.explanation) setTeacherExplanation(data.explanation);
-        if (data.lessonInfo) {
+        if (data.lessonInfo && data.explanation) {
           const info: ExtractedLessonInfo = data.lessonInfo;
           setCurrentLessonInfo(info);
-          setStudiedEntries((prev) => {
-            const alreadyExists = prev.some(
-              (e) => e.lessonInfo.series === info.series &&
-                     e.lessonInfo.course === info.course &&
-                     e.lessonInfo.lesson === info.lesson
-            );
-            if (alreadyExists) return prev;
-            return [
-              { id: Date.now().toString(), lessonInfo: info, timestamp: Date.now() },
-              ...prev,
-            ];
+          setStudyLog((prev) => addToStudyLog(prev, info, data.keyLearning ?? "", data.explanation));
+          setTeacherView({
+            type: "question",
+            courseKey: makeCourseKey(info.series, info.course),
+            lessonName: info.lesson,
+            questionInfo: info.questionInfo,
           });
         }
       } catch (err) {
@@ -79,7 +123,7 @@ export default function DrillTool() {
       [type === "question" ? "questionImage" : "answerImage"]: null,
     }));
     if (type === "question") {
-      setTeacherExplanation("");
+      setTeacherView(null);
       setCurrentLessonInfo(null);
     }
   }, []);
@@ -95,7 +139,15 @@ export default function DrillTool() {
             question,
             questionImageDataUrl: screenshots.questionImage,
             answerImageDataUrl: screenshots.answerImage,
-            currentExplanation: teacherExplanation,
+            currentExplanation:
+              teacherView?.type === "question"
+                ? (() => {
+                    const c = studyLog.courses.find((c) => c.courseKey === teacherView.courseKey);
+                    const l = c?.lessons.find((l) => l.lessonName === teacherView.lessonName);
+                    const q = l?.questions.find((q) => q.questionInfo === teacherView.questionInfo);
+                    return q?.explanation ?? "";
+                  })()
+                : "",
             lessonTitle: currentLessonInfo
               ? `${currentLessonInfo.series} ${currentLessonInfo.course} - ${currentLessonInfo.lesson}`
               : "不明",
@@ -116,35 +168,50 @@ export default function DrillTool() {
         setQuestionLoading(false);
       }
     },
-    [screenshots, teacherExplanation, currentLessonInfo]
+    [screenshots, teacherView, studyLog, currentLessonInfo]
   );
 
   const handleApproveAddition = useCallback(
     (entryId: string) => {
       const entry = qaEntries.find((e) => e.id === entryId);
-      if (entry?.proposedAddition) {
-        setTeacherExplanation((prev) =>
-          prev ? `${prev}\n\n---\n${entry.proposedAddition}` : entry.proposedAddition
-        );
+      if (entry?.proposedAddition && teacherView?.type === "question") {
+        const { courseKey, lessonName, questionInfo } = teacherView;
+        setStudyLog((prev) => {
+          const courses = prev.courses.map((c) => {
+            if (c.courseKey !== courseKey) return c;
+            return {
+              ...c,
+              lessons: c.lessons.map((l) => {
+                if (l.lessonName !== lessonName) return l;
+                return {
+                  ...l,
+                  questions: l.questions.map((q) => {
+                    if (q.questionInfo !== questionInfo) return q;
+                    return { ...q, explanation: `${q.explanation}\n\n---\n${entry.proposedAddition}` };
+                  }),
+                };
+              }),
+            };
+          });
+          return { courses };
+        });
       }
       setQaEntries((prev) =>
         prev.map((e) => (e.id === entryId ? { ...e, approved: true } : e))
       );
     },
-    [qaEntries]
+    [qaEntries, teacherView]
   );
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      {/* ①ナビゲーション */}
-      <div className="w-56 shrink-0">
+      <div className="w-60 shrink-0">
         <NavigationPane
-          studiedEntries={studiedEntries}
-          currentLessonInfo={currentLessonInfo}
+          studyLog={studyLog}
+          teacherView={teacherView}
+          onSelectView={setTeacherView}
         />
       </div>
-
-      {/* ②スクリーンショット */}
       <div className="w-72 shrink-0">
         <ScreenshotPane
           screenshots={screenshots}
@@ -153,18 +220,15 @@ export default function DrillTool() {
           disabled={false}
         />
       </div>
-
-      {/* ③先生ペイン */}
       <div className="flex-1 min-w-0">
         <TeacherPane
-          explanation={teacherExplanation}
+          studyLog={studyLog}
+          teacherView={teacherView}
           isLoading={teacherLoading}
           currentLessonInfo={currentLessonInfo}
           hasScreenshots={!!screenshots.questionImage}
         />
       </div>
-
-      {/* ④質問ペイン */}
       <div className="w-80 shrink-0">
         <QuestionPane
           qaEntries={qaEntries}
