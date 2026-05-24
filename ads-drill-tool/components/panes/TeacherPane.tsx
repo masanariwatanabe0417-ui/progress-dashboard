@@ -4,6 +4,8 @@ import { Loader2, GraduationCap } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { ExtractedLessonInfo, StudyLog, TeacherView } from "@/lib/types";
+import ReactMarkdown from "react-markdown";
+import type { Components } from "react-markdown";
 
 interface TeacherPaneProps {
   studyLog: StudyLog;
@@ -13,6 +15,52 @@ interface TeacherPaneProps {
   currentLessonInfo: ExtractedLessonInfo | null;
 }
 
+const markdownComponents: Components = {
+  h2: ({ children }) => (
+    <h2 className="text-base font-semibold text-foreground border-b pb-1 mt-4 mb-2 first:mt-0">
+      {children}
+    </h2>
+  ),
+  h3: ({ children }) => (
+    <h3 className="text-sm font-semibold text-foreground mt-3 mb-1">
+      {children}
+    </h3>
+  ),
+  strong: ({ children }) => (
+    <strong className="font-semibold text-foreground">{children}</strong>
+  ),
+  code: ({ children, className }) => {
+    const isBlock = className?.startsWith("language-");
+    if (isBlock) {
+      return (
+        <code className="block bg-slate-100 rounded p-3 font-mono text-sm whitespace-pre-wrap text-slate-800">
+          {children}
+        </code>
+      );
+    }
+    return (
+      <code className="bg-slate-100 px-1 rounded font-mono text-xs text-slate-800">
+        {children}
+      </code>
+    );
+  },
+  pre: ({ children }) => (
+    <pre className="bg-slate-100 rounded p-3 overflow-x-auto my-2">{children}</pre>
+  ),
+  ul: ({ children }) => (
+    <ul className="space-y-1 my-2 pl-4 list-disc">{children}</ul>
+  ),
+  ol: ({ children }) => (
+    <ol className="space-y-1 my-2 pl-4 list-decimal">{children}</ol>
+  ),
+  li: ({ children }) => (
+    <li className="text-sm leading-relaxed text-foreground">{children}</li>
+  ),
+  p: ({ children }) => (
+    <p className="text-sm leading-relaxed text-foreground my-1">{children}</p>
+  ),
+};
+
 function renderContent(studyLog: StudyLog, teacherView: TeacherView): React.ReactNode {
   if (!teacherView) return null;
 
@@ -20,9 +68,12 @@ function renderContent(studyLog: StudyLog, teacherView: TeacherView): React.Reac
     const course = studyLog.courses.find((c) => c.courseKey === teacherView.courseKey);
     const lesson = course?.lessons.find((l) => l.lessonName === teacherView.lessonName);
     const q = lesson?.questions.find((q) => q.questionInfo === teacherView.questionInfo);
+    const explanation = q?.explanation ?? "";
     return (
-      <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
-        {q?.explanation ?? ""}
+      <div className="prose-sm max-w-none">
+        <ReactMarkdown components={markdownComponents}>
+          {explanation}
+        </ReactMarkdown>
       </div>
     );
   }
