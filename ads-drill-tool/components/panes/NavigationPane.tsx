@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BookOpen, ChevronDown, ChevronRight, FileText, GraduationCap } from "lucide-react";
 import { StudyLog, TeacherView } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,22 @@ interface NavigationPaneProps {
 export default function NavigationPane({ studyLog, teacherView, onSelectView }: NavigationPaneProps) {
   const [expandedCourses, setExpandedCourses] = useState<Set<string>>(new Set());
   const [expandedLessons, setExpandedLessons] = useState<Set<string>>(new Set());
+
+  // スクショ貼り付け後、新しいQが追加されたら自動展開
+  useEffect(() => {
+    if (teacherView?.type === "question") {
+      setExpandedCourses((prev) => {
+        const next = new Set(prev);
+        next.add(teacherView.courseKey);
+        return next;
+      });
+      setExpandedLessons((prev) => {
+        const next = new Set(prev);
+        next.add(`${teacherView.courseKey}__${teacherView.lessonName}`);
+        return next;
+      });
+    }
+  }, [teacherView]);
 
   const toggleCourse = (key: string) =>
     setExpandedCourses((prev) => {

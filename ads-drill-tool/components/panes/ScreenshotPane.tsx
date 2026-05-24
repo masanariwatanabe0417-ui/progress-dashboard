@@ -1,6 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+
+function usePasteShortcut() {
+  const [label, setLabel] = useState("Ctrl+V");
+  useEffect(() => {
+    if (/Mac|iPhone|iPad|iPod/i.test(navigator.platform)) setLabel("⌘V");
+  }, []);
+  return label;
+}
 import { Upload, X, Clipboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -32,6 +40,7 @@ interface SlotCardProps {
   onScreenshotClear: (type: "question" | "answer") => void;
   disabled: boolean;
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>, type: "question" | "answer") => void;
+  pasteShortcut: string;
 }
 
 const SlotCard = ({
@@ -44,6 +53,7 @@ const SlotCard = ({
   onScreenshotClear,
   disabled,
   onFileChange,
+  pasteShortcut,
 }: SlotCardProps) => (
   <div
     className={cn(
@@ -86,7 +96,7 @@ const SlotCard = ({
         <p className="text-xs text-muted-foreground">
           クリックして選択するか
           <br />
-          Ctrl+V で貼り付け
+          {pasteShortcut} で貼り付け
         </p>
         <Button
           variant="outline"
@@ -122,6 +132,7 @@ export default function ScreenshotPane({
   const [activeSlot, setActiveSlot] = useState<"question" | "answer">("question");
   const questionInputRef = useRef<HTMLInputElement>(null);
   const answerInputRef = useRef<HTMLInputElement>(null);
+  const pasteShortcut = usePasteShortcut();
 
   const handleFileChange = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>, type: "question" | "answer") => {
@@ -156,7 +167,7 @@ export default function ScreenshotPane({
           スクリーンショット
         </h2>
         <p className="text-xs text-muted-foreground mt-0.5">
-          枠をクリック → Ctrl+V で貼り付け
+          枠をクリック → {pasteShortcut} で貼り付け
         </p>
       </div>
       <ScrollArea className="flex-1">
@@ -171,6 +182,7 @@ export default function ScreenshotPane({
             onScreenshotClear={onScreenshotClear}
             disabled={disabled}
             onFileChange={handleFileChange}
+            pasteShortcut={pasteShortcut}
           />
           <SlotCard
             type="answer"
@@ -182,6 +194,7 @@ export default function ScreenshotPane({
             onScreenshotClear={onScreenshotClear}
             disabled={disabled}
             onFileChange={handleFileChange}
+            pasteShortcut={pasteShortcut}
           />
         </div>
       </ScrollArea>
