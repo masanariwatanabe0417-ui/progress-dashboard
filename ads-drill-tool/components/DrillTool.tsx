@@ -5,24 +5,26 @@ import NavigationPane from "./panes/NavigationPane";
 import ScreenshotPane from "./panes/ScreenshotPane";
 import TeacherPane from "./panes/TeacherPane";
 import QuestionPane from "./panes/QuestionPane";
-import { DrillScreenshots, QAEntry, SelectedLesson } from "@/lib/types";
+import { DrillScreenshots, ExtractedLessonInfo, QAEntry, StudiedEntry } from "@/lib/types";
 
 export default function DrillTool() {
-  const [selectedLesson, setSelectedLesson] = useState<SelectedLesson | null>(null);
   const [screenshots, setScreenshots] = useState<DrillScreenshots>({
     questionImage: null,
     answerImage: null,
   });
+  const [currentLessonInfo, setCurrentLessonInfo] = useState<ExtractedLessonInfo | null>(null);
+  const [studiedEntries, setStudiedEntries] = useState<StudiedEntry[]>([]);
   const [teacherExplanation, setTeacherExplanation] = useState("");
   const [teacherLoading, setTeacherLoading] = useState(false);
   const [qaEntries, setQaEntries] = useState<QAEntry[]>([]);
   const [questionLoading, setQuestionLoading] = useState(false);
 
   const fetchTeacherExplanation = useCallback(
-    async (newScreenshots: DrillScreenshots, lessonTitle: string) => {
+    async (newScreenshots: DrillScreenshots) => {
       if (!newScreenshots.questionImage) return;
       setTeacherLoading(true);
       setTeacherExplanation("");
+      setCurrentLessonInfo(null);
       try {
         const res = await fetch("/api/teacher", {
           method: "POST",
@@ -30,11 +32,26 @@ export default function DrillTool() {
           body: JSON.stringify({
             questionImageDataUrl: newScreenshots.questionImage,
             answerImageDataUrl: newScreenshots.answerImage,
-            lessonTitle,
           }),
         });
         const data = await res.json();
         if (data.explanation) setTeacherExplanation(data.explanation);
+        if (data.lessonInfo) {
+          const info: ExtractedLessonInfo = data.lessonInfo;
+          setCurrentLessonInfo(info);
+          setStudiedEntries((prev) => {
+            const alreadyExists = prev.some(
+              (e) => e.lessonInfo.series === info.series &&
+                     e.lessonInfo.course === info.course &&
+                     e.lessonInfo.lesson === info.lesson
+            );
+            if (alreadyExists) return prev;
+            return [
+              { id: Date.now().toString(), lessonInfo: info, timestamp: Date.now() },
+              ...prev,
+            ];
+          });
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -44,40 +61,31 @@ export default function DrillTool() {
     []
   );
 
-  const handleLessonSelect = useCallback((selected: SelectedLesson) => {
-    setSelectedLesson(selected);
-    setScreenshots({ questionImage: null, answerImage: null });
-    setTeacherExplanation("");
-    setQaEntries([]);
-  }, []);
-
   const handleScreenshotUpload = useCallback(
     (type: "question" | "answer", dataUrl: string) => {
       setScreenshots((prev) => {
         const next = { ...prev, [type === "question" ? "questionImage" : "answerImage"]: dataUrl };
-        if (selectedLesson) {
-          fetchTeacherExplanation(next, selectedLesson.lesson.title);
-        }
+        fetchTeacherExplanation(next);
         return next;
       });
+      setQaEntries([]);
     },
-    [selectedLesson, fetchTeacherExplanation]
+    [fetchTeacherExplanation]
   );
 
-  const handleScreenshotClear = useCallback(
-    (type: "question" | "answer") => {
-      setScreenshots((prev) => {
-        const next = { ...prev, [type === "question" ? "questionImage" : "answerImage"]: null };
-        return next;
-      });
+  const handleScreenshotClear = useCallback((type: "question" | "answer") => {
+    setScreenshots((prev) => ({
+      ...prev,
+      [type === "question" ? "questionImage" : "answerImage"]: null,
+    }));
+    if (type === "question") {
       setTeacherExplanation("");
-    },
-    []
-  );
+      setCurrentLessonInfo(null);
+    }
+  }, []);
 
   const handleAskQuestion = useCallback(
     async (question: string) => {
-      if (!selectedLesson) return;
       setQuestionLoading(true);
       try {
         const res = await fetch("/api/question", {
@@ -88,7 +96,9 @@ export default function DrillTool() {
             questionImageDataUrl: screenshots.questionImage,
             answerImageDataUrl: screenshots.answerImage,
             currentExplanation: teacherExplanation,
-            lessonTitle: selectedLesson.lesson.title,
+            lessonTitle: currentLessonInfo
+              ? `${currentLessonInfo.series} ${currentLessonInfo.course} - ${currentLessonInfo.lesson}`
+              : "不明",
           }),
         });
         const data = await res.json();
@@ -106,28 +116,31 @@ export default function DrillTool() {
         setQuestionLoading(false);
       }
     },
-    [selectedLesson, screenshots, teacherExplanation]
+    [screenshots, teacherExplanation, currentLessonInfo]
   );
 
-  const handleApproveAddition = useCallback((entryId: string) => {
-    setQaEntries((prev) =>
-      prev.map((e) => (e.id === entryId ? { ...e, approved: true } : e))
-    );
-    const entry = qaEntries.find((e) => e.id === entryId);
-    if (entry?.proposedAddition) {
-      setTeacherExplanation((prev) =>
-        prev ? `${prev}\n\n---\n${entry.proposedAddition}` : entry.proposedAddition
+  const handleApproveAddition = useCallback(
+    (entryId: string) => {
+      const entry = qaEntries.find((e) => e.id === entryId);
+      if (entry?.proposedAddition) {
+        setTeacherExplanation((prev) =>
+          prev ? `${prev}\n\n---\n${entry.proposedAddition}` : entry.proposedAddition
+        );
+      }
+      setQaEntries((prev) =>
+        prev.map((e) => (e.id === entryId ? { ...e, approved: true } : e))
       );
-    }
-  }, [qaEntries]);
+    },
+    [qaEntries]
+  );
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       {/* ①ナビゲーション */}
       <div className="w-56 shrink-0">
         <NavigationPane
-          selectedLesson={selectedLesson}
-          onLessonSelect={handleLessonSelect}
+          studiedEntries={studiedEntries}
+          currentLessonInfo={currentLessonInfo}
         />
       </div>
 
@@ -137,7 +150,7 @@ export default function DrillTool() {
           screenshots={screenshots}
           onScreenshotUpload={handleScreenshotUpload}
           onScreenshotClear={handleScreenshotClear}
-          disabled={!selectedLesson}
+          disabled={false}
         />
       </div>
 
@@ -146,7 +159,8 @@ export default function DrillTool() {
         <TeacherPane
           explanation={teacherExplanation}
           isLoading={teacherLoading}
-          hasScreenshots={!!(screenshots.questionImage)}
+          currentLessonInfo={currentLessonInfo}
+          hasScreenshots={!!screenshots.questionImage}
         />
       </div>
 
@@ -155,7 +169,7 @@ export default function DrillTool() {
         <QuestionPane
           qaEntries={qaEntries}
           isLoading={questionLoading}
-          hasLesson={!!selectedLesson}
+          hasLesson={!!screenshots.questionImage}
           onAskQuestion={handleAskQuestion}
           onApproveAddition={handleApproveAddition}
         />
