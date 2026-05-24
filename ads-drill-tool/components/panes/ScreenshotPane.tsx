@@ -22,6 +22,97 @@ const toBase64 = (blob: Blob): Promise<string> =>
     reader.readAsDataURL(blob);
   });
 
+interface SlotCardProps {
+  type: "question" | "answer";
+  label: string;
+  image: string | null;
+  inputRef: React.RefObject<HTMLInputElement>;
+  activeSlot: "question" | "answer";
+  setActiveSlot: (slot: "question" | "answer") => void;
+  onScreenshotClear: (type: "question" | "answer") => void;
+  disabled: boolean;
+  onFileChange: (e: React.ChangeEvent<HTMLInputElement>, type: "question" | "answer") => void;
+}
+
+const SlotCard = ({
+  type,
+  label,
+  image,
+  inputRef,
+  activeSlot,
+  setActiveSlot,
+  onScreenshotClear,
+  disabled,
+  onFileChange,
+}: SlotCardProps) => (
+  <div
+    className={cn(
+      "rounded-lg border-2 transition-colors cursor-pointer",
+      activeSlot === type ? "border-primary" : "border-border"
+    )}
+    onClick={() => setActiveSlot(type)}
+  >
+    <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/40 rounded-t-lg">
+      <span className="text-xs font-semibold">{label}</span>
+      <div className="flex gap-1">
+        {activeSlot === type && (
+          <span className="text-xs text-primary font-medium flex items-center gap-1">
+            <Clipboard className="h-3 w-3" />
+            貼付先
+          </span>
+        )}
+        {image && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onScreenshotClear(type);
+            }}
+            className="text-muted-foreground hover:text-destructive"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
+    </div>
+
+    {image ? (
+      <div className="p-2">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={image} alt={label} className="w-full rounded object-contain max-h-64" />
+      </div>
+    ) : (
+      <div className="flex flex-col items-center justify-center gap-2 p-6 text-center">
+        <Upload className="h-8 w-8 text-muted-foreground/50" />
+        <p className="text-xs text-muted-foreground">
+          クリックして選択するか
+          <br />
+          Ctrl+V で貼り付け
+        </p>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={disabled}
+          onClick={(e) => {
+            e.stopPropagation();
+            setActiveSlot(type);
+            inputRef.current?.click();
+          }}
+        >
+          ファイルを選択
+        </Button>
+      </div>
+    )}
+
+    <input
+      ref={inputRef}
+      type="file"
+      accept="image/*"
+      className="hidden"
+      onChange={(e) => onFileChange(e, type)}
+    />
+  </div>
+);
+
 export default function ScreenshotPane({
   screenshots,
   onScreenshotUpload,
@@ -58,85 +149,6 @@ export default function ScreenshotPane({
     return () => window.removeEventListener("paste", handlePaste);
   }, [activeSlot, onScreenshotUpload]);
 
-  const SlotCard = ({
-    type,
-    label,
-    image,
-    inputRef,
-  }: {
-    type: "question" | "answer";
-    label: string;
-    image: string | null;
-    inputRef: React.RefObject<HTMLInputElement>;
-  }) => (
-    <div
-      className={cn(
-        "rounded-lg border-2 transition-colors cursor-pointer",
-        activeSlot === type ? "border-primary" : "border-border"
-      )}
-      onClick={() => setActiveSlot(type)}
-    >
-      <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/40 rounded-t-lg">
-        <span className="text-xs font-semibold">{label}</span>
-        <div className="flex gap-1">
-          {activeSlot === type && (
-            <span className="text-xs text-primary font-medium flex items-center gap-1">
-              <Clipboard className="h-3 w-3" />
-              貼付先
-            </span>
-          )}
-          {image && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onScreenshotClear(type);
-              }}
-              className="text-muted-foreground hover:text-destructive"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {image ? (
-        <div className="p-2">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={image} alt={label} className="w-full rounded object-contain max-h-64" />
-        </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center gap-2 p-6 text-center">
-          <Upload className="h-8 w-8 text-muted-foreground/50" />
-          <p className="text-xs text-muted-foreground">
-            クリックして選択するか
-            <br />
-            Ctrl+V で貼り付け
-          </p>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={disabled}
-            onClick={(e) => {
-              e.stopPropagation();
-              setActiveSlot(type);
-              inputRef.current?.click();
-            }}
-          >
-            ファイルを選択
-          </Button>
-        </div>
-      )}
-
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => handleFileChange(e, type)}
-      />
-    </div>
-  );
-
   return (
     <div className="flex flex-col h-full border-r">
       <div className="p-3 border-b">
@@ -154,12 +166,22 @@ export default function ScreenshotPane({
             label="問題"
             image={screenshots.questionImage}
             inputRef={questionInputRef}
+            activeSlot={activeSlot}
+            setActiveSlot={setActiveSlot}
+            onScreenshotClear={onScreenshotClear}
+            disabled={disabled}
+            onFileChange={handleFileChange}
           />
           <SlotCard
             type="answer"
             label="解答"
             image={screenshots.answerImage}
             inputRef={answerInputRef}
+            activeSlot={activeSlot}
+            setActiveSlot={setActiveSlot}
+            onScreenshotClear={onScreenshotClear}
+            disabled={disabled}
+            onFileChange={handleFileChange}
           />
         </div>
       </ScrollArea>

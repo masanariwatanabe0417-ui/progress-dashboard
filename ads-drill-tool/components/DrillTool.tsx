@@ -58,6 +58,14 @@ function addToStudyLog(
   return { courses };
 }
 
+function findExplanation(studyLog: StudyLog, view: TeacherView): string {
+  if (view?.type !== "question") return "";
+  const course = studyLog.courses.find((c) => c.courseKey === view.courseKey);
+  const lesson = course?.lessons.find((l) => l.lessonName === view.lessonName);
+  const q = lesson?.questions.find((q) => q.questionInfo === view.questionInfo);
+  return q?.explanation ?? "";
+}
+
 export default function DrillTool() {
   const [screenshots, setScreenshots] = useState<DrillScreenshots>({
     questionImage: null,
@@ -84,6 +92,10 @@ export default function DrillTool() {
             answerImageDataUrl: newScreenshots.answerImage,
           }),
         });
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new Error(errText);
+        }
         const data = await res.json();
         if (data.lessonInfo && data.explanation) {
           const info: ExtractedLessonInfo = data.lessonInfo;
@@ -107,14 +119,13 @@ export default function DrillTool() {
 
   const handleScreenshotUpload = useCallback(
     (type: "question" | "answer", dataUrl: string) => {
-      setScreenshots((prev) => {
-        const next = { ...prev, [type === "question" ? "questionImage" : "answerImage"]: dataUrl };
-        fetchTeacherExplanation(next);
-        return next;
-      });
+      const key = type === "question" ? "questionImage" : "answerImage";
+      const next = { ...screenshots, [key]: dataUrl };
+      setScreenshots(next);
+      fetchTeacherExplanation(next);
       setQaEntries([]);
     },
-    [fetchTeacherExplanation]
+    [fetchTeacherExplanation, screenshots]
   );
 
   const handleScreenshotClear = useCallback((type: "question" | "answer") => {
@@ -139,20 +150,16 @@ export default function DrillTool() {
             question,
             questionImageDataUrl: screenshots.questionImage,
             answerImageDataUrl: screenshots.answerImage,
-            currentExplanation:
-              teacherView?.type === "question"
-                ? (() => {
-                    const c = studyLog.courses.find((c) => c.courseKey === teacherView.courseKey);
-                    const l = c?.lessons.find((l) => l.lessonName === teacherView.lessonName);
-                    const q = l?.questions.find((q) => q.questionInfo === teacherView.questionInfo);
-                    return q?.explanation ?? "";
-                  })()
-                : "",
+            currentExplanation: findExplanation(studyLog, teacherView),
             lessonTitle: currentLessonInfo
               ? `${currentLessonInfo.series} ${currentLessonInfo.course} - ${currentLessonInfo.lesson}`
               : "不明",
           }),
         });
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new Error(errText);
+        }
         const data = await res.json();
         const entry: QAEntry = {
           id: Date.now().toString(),

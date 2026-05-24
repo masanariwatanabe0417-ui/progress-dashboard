@@ -47,7 +47,10 @@ lessonInfoは必ずスクリーンショット内の文字から読み取り、q
       messages: [{ role: "user", content }],
     });
 
-    const rawText = message.content[0].type === "text" ? message.content[0].text : "{}";
+    const rawText =
+      message.content.length > 0 && message.content[0].type === "text"
+        ? message.content[0].text
+        : "{}";
 
     let parsed: {
       lessonInfo?: { series: string; course: string; lesson: string; questionInfo: string };
